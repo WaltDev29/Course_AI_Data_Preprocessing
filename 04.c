@@ -15,9 +15,7 @@ int main(void) {
 	}
 
 	printf("%-7s %-7s %-7s\n", "이름", "성별", "나이");
-	for (int i = 0; i < 3; i++) {		
-		ret = fscanf(fp, "%s %c %d", name, &sex, &age);
-		if (ret == EOF) break;
+	while ((ret = fscanf(fp, "%s %c %d", name, &sex, &age)) != EOF) {
 		printf("%-7s %-7c %-7d\n", name, sex, age);				
 	}
 
