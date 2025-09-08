@@ -21,12 +21,10 @@ int main(void) {
 	char data[100];
 
 	int userMoney = 5000;	// 사용자 소지 금액
-	int machineMoney = 0;	// 자판기 소지 금액
-	int floatingMoney = 0;
+	int machineMoney = 0;	// 자판기 소지 금액	
 	int state = 0;		// 자판기 상태
 	int mode = 0;	// 접속 모드 
 	int choice = 0;		// 사용자 입력값	
-
 
 	// 파일 읽기 용 변수
 	char name[100];
@@ -55,13 +53,13 @@ int main(void) {
 		printf("%s %d %d\n", drinks[i].name, drinks[i].price, drinks[i].stock);
 	}
 
-	fclose(fp);
-	return 0;
+	/*fclose(fp);
+	return 0;*/
 
 
 	
 
-	int drinkTypes = sizeof(drinks) / sizeof(Drink);
+	int drinkTypes = num;
 
 	printf("### 음료 자판기 ###\n\n");
 	printMachine(0, 0, machineMoney, userMoney);
@@ -170,8 +168,9 @@ int main(void) {
 // 음료 리스트를 읽어서 동적으로 drinks 리스트를 만들도록 함.
 
 // todo
-// 0. 프로그램 실행 시 파일로부터 데이터를 읽어서 음료리스트 만들기 
-// 1. 관리자 모드 구현 (파일 입출력) (데이터를 어떻게 기록할 것인가.)
+// 0. 데이터 파일의 포맷을 어떻게 할 것인가.
+//		(총 재고량 : 10 이런 식으로 작성하고 싶은데, 읽을 때는 어떻게 읽음?)
+// 1. 관리자 모드 구현 (파일 입출력) (데이터를 어떻게 기록/수정할 것인가.)
 // 2. UI도 음료수 갯수에 맞춰 동적으로 생성해볼까?
 
 
@@ -223,12 +222,12 @@ void printMachine(int drink, int change, int machineMoney, int userMoney) {
 
 int insertMoney(int* userMoney, int* machineMoney) {
 	int state;
-	int floatingMoney;
+	int cash;
 	printf("\n--- 현금 투입 ---\n\n");
 	printf("투입 금액을 입력해주세요 (0 : 프로그램 종료) : ");
-	while (scanf("%d", &floatingMoney) != 1 || (floatingMoney > *userMoney || floatingMoney < 0) || floatingMoney % 10 != 0) {
+	while (scanf("%d", &cash) != 1 || (cash > *userMoney || cash < 0) || cash % 10 != 0) {
 		while (getchar() != '\n');
-		if (floatingMoney % 10 != 0) {
+		if (cash % 10 != 0) {
 			printf("\n10원 단위로 입력해주세요.\n\n");
 		}
 		else {
@@ -238,10 +237,10 @@ int insertMoney(int* userMoney, int* machineMoney) {
 		printf("투입 금액을 입력해주세요 : ");
 	}
 	while (getchar() != '\n');
-	if (floatingMoney == 0) state = exitProgram();
+	if (cash == 0) state = exitProgram();
 	else {
-		*userMoney -= floatingMoney;
-		*machineMoney += floatingMoney;
+		*userMoney -= cash;
+		*machineMoney += cash;
 		state = 1;
 	}
 	return state;
