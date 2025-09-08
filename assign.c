@@ -11,12 +11,14 @@ typedef struct {
 void printMachine(int drink, int change, int machineMoney, int userMoney);
 int insertMoney(int* userMoney, int* machineMoney);
 int selectMenu(int drinkTypes, Drink drinks[], int* choice, int* machineMoney);
-int dispenseDrink(Drink drinks[], int choice, int machineMoney, int state);
+int dispenseDrink(Drink drinks[], int choice, int machineMoney, int userMoney, int state);
 int returnChange(int* machineMoney, int* userMoney);
 int exitProgram();
 int askYesNo(int state1, int state2);
 
 int main(void) {
+	char data[100];
+
 	int userMoney = 5000;	// 사용자 소지 금액
 	int machineMoney = 0;	// 자판기 소지 금액
 	int floatingMoney = 0;
@@ -42,6 +44,47 @@ int main(void) {
 
 	while (1) {
 		if (mode == 0) {
+			int answer;	// 관리자 입력
+			FILE* fp = fopen("machine_data.txt", "a+t");
+			while (1) {
+				system("cls");
+				printf("--- 관리자 모드 ---\n\n");
+
+				if (fp == NULL) {
+					printf("데이터 불러오기 실패\n");
+					printf("프로그램을 종료합니다.\n");
+					return -1;
+				}
+
+				printf("읽기 모드 : 0\n쓰기 모드 : 1\n종료 : -1\n\n");
+				printf("입력 : ");
+				scanf("%d", &answer);
+				getchar();
+
+				fseek(fp, 0, SEEK_SET);
+				if (answer == 0) {
+					while (fgets(data, sizeof(data), fp) != NULL) {
+						printf("%s", data);
+					}
+					printf("\n");
+				}
+
+				else if (answer == 1) {
+					printf("\n데이터를 입력하세요 (EXIT 입력 시 입력 종료) : \n");
+					while (1) {
+						scanf("%s", data);
+						getchar();
+						if (data == "EXIT") break;
+						fprintf(fp, data);
+					}
+				}
+
+				else break;
+			}
+			printf("프로그램을 종료합니다.\n");
+			fclose(fp);
+			return 0;
+
 			// 관리자 모드
 			// 파일 입출력 사용 (파일 조회, 수정)			
 			// # 파일 내용(추가 제외 가능)
@@ -67,13 +110,13 @@ int main(void) {
 					// 음료 제공
 				case 2:
 					printMachine(1, 0, machineMoney, userMoney);
-					state = dispenseDrink(drinks, choice, machineMoney, state);
+					state = dispenseDrink(drinks, choice, machineMoney, userMoney, state);
 					break;
 
 					// 잔돈 반환
 				case 3:
 					printMachine(0, 1, machineMoney, userMoney);
-					state = returnChange(&machineMoney, &userMoney);					
+					state = returnChange(&machineMoney, &userMoney);
 					break;
 
 					// 프로그램 종료
@@ -102,7 +145,6 @@ int main(void) {
 // todo
 // 1. 관리자 모드 구현 (파일 입출력) (데이터를 어떻게 기록할 것인가.)
 // 2. 프로그램 실행 시 파일로부터 데이터를 읽어서 음료
-// 3. 함수에 주소전달하는 거 줄일 수 있는지 확인
 
 
 // 자판기 출력 함수
@@ -210,18 +252,19 @@ int selectMenu(int drinkTypes, Drink drinks[], int* choice, int* machineMoney) {
 	return state;
 }
 
-int dispenseDrink(Drink drinks[], int choice, int machineMoney, int state) {	
+int dispenseDrink(Drink drinks[], int choice, int machineMoney, int userMoney, int state) {
 	char answer;
 	printf("\n--- 음료 제공 ---\n\n");
 	printf("%s 드리겠습니다.\n\nEnter키를 눌러 받아주세요.\n", drinks[choice - 1].name);
 	while (getchar() != '\n');
-	printf("맛있게 드세요!\n\n");
+	printMachine(0, 0, machineMoney, userMoney);
+	printf("\n맛있게 드세요!\n\n");
 	printf("음료를 더 주문하실 건가요?\n");
 
 	state = askYesNo(1, 3);
 	if (state == 1 && machineMoney <= 0) state = 0;
-	if (state == 3 && machineMoney <= 0) state = exitProgram();	
-	
+	if (state == 3 && machineMoney <= 0) state = exitProgram();
+
 
 	return state;
 }
@@ -232,11 +275,12 @@ int returnChange(int* machineMoney, int* userMoney) {
 	while (getchar() != '\n');
 	*userMoney += *machineMoney;
 	*machineMoney = 0;
+	printMachine(0, 0, *machineMoney, *userMoney);
 	return exitProgram();
 }
 
-int exitProgram() {		
-	printf("\n자판기 이용을 종료하시겠습니까?\n");	
+int exitProgram() {
+	printf("\n자판기 이용을 종료하시겠습니까?\n");
 	return askYesNo(4, 0);
 }
 
@@ -244,7 +288,7 @@ int askYesNo(int state1, int state2) {
 	int state;
 	char answer;
 	while (1) {
-	printf("Y/N : ");
+		printf("Y/N : ");
 		scanf("%c", &answer);
 		if (answer == 'y' || answer == 'Y') {
 			while (getchar() != '\n');
@@ -258,7 +302,7 @@ int askYesNo(int state1, int state2) {
 		}
 		else {
 			while (getchar() != '\n');
-			printf("\n잘못된 값을 입력했습니다.\n");			
+			printf("\n잘못된 값을 입력했습니다.\n");
 			continue;
 		}
 	}
