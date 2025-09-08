@@ -3,12 +3,17 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define FILE_NAME "test.txt"
+
+// 구조체 선언
 typedef struct {
 	char name[50];
 	int price;
 	int stock;
 } Drink;
 
+
+// 함수 선언
 void printMachine(int drink, int change, int machineMoney, int userMoney);
 int insertMoney(int* userMoney, int* machineMoney);
 int selectMenu(int drinkTypes, Drink drinks[], int* choice, int* machineMoney);
@@ -17,56 +22,86 @@ int returnChange(int* machineMoney, int* userMoney);
 int exitProgram();
 int askYesNo(int state1, int state2);
 
-int main(void) {
-	char data[100];
 
+int main(void) {
+	// 상호작용 관련 변수
 	int userMoney = 5000;	// 사용자 소지 금액
 	int machineMoney = 0;	// 자판기 소지 금액	
 	int state = 0;		// 자판기 상태
 	int mode = 0;	// 접속 모드 
 	int choice = 0;		// 사용자 입력값	
 
-	// 파일 읽기 용 변수
+	// 파일 읽기용 변수
 	char name[100];
 	int price;
 	int stock;
-	int drinkTypes;
+	int drinkTypes;	// 음료 종류 가지 수
+	int totalSales;	// 총 판매량
+	int totalRevenue;	// 총 수익
 
-	FILE* fp = fopen("machine_data.txt", "a+t");
+
+	// 파일 열기
+	FILE* fp = fopen(FILE_NAME, "a+t");
 	if (fp == NULL) {
 		printf("데이터 불러오기 실패\n");
 		printf("프로그램을 종료합니다.\n");
 		return -1;
 	}
-		
+	// 커서 위치 처음으로
 	fseek(fp, 0, SEEK_SET);
 
-	fscanf(fp, "%d", &drinkTypes);	
-	Drink* drinks = (Drink*)malloc(drinkTypes * sizeof(Drink));	
-	for (int i=0; i< drinkTypes; i++) {
+
+	// 음료 종류 읽어 오기
+	while (fgetc(fp) != ':');
+	fscanf(fp, "%d", &drinkTypes);
+	while (fgetc(fp) != ':');
+	fscanf(fp, "%d", &totalSales);
+	while (fgetc(fp) != ':');
+	fscanf(fp, "%d", &totalRevenue);
+
+
+	// 음료 목록 갖고 오기 전 불필요한 내용 건너뛰기
+	for (int i = 0; i < 5; i++) {
+		char tmp[100];
+		fgets(tmp, sizeof(tmp), fp);
+	}
+
+	// 음료수 목록 갖고 와서 drinks 배열 생성
+	Drink* drinks = (Drink*)malloc(drinkTypes * sizeof(Drink));
+	for (int i = 0; i < drinkTypes; i++) {
 		fscanf(fp, "%s %d %d", name, &price, &stock);
 		strcpy(drinks[i].name, name);
 		drinks[i].price = price;
-		drinks[i].stock = stock;		
+		drinks[i].stock = stock;
 	}
+
+	// 디버깅용 출력	
+	printf("음료 종류 : %d개\n", drinkTypes);
+	printf("총 판매량 : %d개\n", totalSales);
+	printf("총 수익 : %d원\n", totalRevenue);
+	// drinks 배열
+	printf("\n음료 목록\n");
 	for (int i = 0; i < drinkTypes; i++) {
 		printf("%s %d %d\n", drinks[i].name, drinks[i].price, drinks[i].stock);
 	}
 
-	/*fclose(fp);
-	return 0;*/
+	
 
-	printf("### 음료 자판기 ###\n\n");
-	printMachine(0, 0, machineMoney, userMoney);
-	printf("\n--- 모드 입력 ---\n");
-	printf("관리자 모드 : 0\n사용자 모드 : 1\n\n");
-	printf("입력 : ");
-	scanf("%d", &mode);
-	while (getchar() != '\n');
 
 	while (1) {
+		// 초기 화면
+		printMachine(0, 0, machineMoney, userMoney);
+		printf("\n--- 모드 입력 ---\n");
+		printf("관리자 모드 : 0\n사용자 모드 : 1\n\n");
+		printf("입력 : ");
+		scanf("%d", &mode);
+		while (getchar() != '\n');
+
+
+		// 관리자 모드
 		if (mode == 0) {
-			int answer;	// 관리자 입력						
+			int answer;	// 관리자 입력	
+			char data[100]; // 파일 내용 담을 버퍼
 			while (1) {
 				system("cls");
 				printf("--- 관리자 모드 ---\n\n");
@@ -109,6 +144,9 @@ int main(void) {
 			//	 - 총 판매량, 총 수익
 			//	 - (음료 구매 기록)
 		}
+
+
+		// 사용자 모드
 		else if (mode == 1) {
 			while (1) {
 				switch (state) {
@@ -159,14 +197,14 @@ int main(void) {
 
 
 // 지금 하고 있는 것.
-// 음료 리스트를 미리 작성해놓았음.
-// 음료 리스트를 읽어서 동적으로 drinks 리스트를 만들도록 함.
+// data 읽어오는 것은 끝
 
 // todo
-// 0. 데이터 파일의 포맷을 어떻게 할 것인가.
-//		(총 재고량 : 10 이런 식으로 작성하고 싶은데, 읽을 때는 어떻게 읽음?)
-// 1. 관리자 모드 구현 (파일 입출력) (데이터를 어떻게 기록/수정할 것인가.)
-// 2. UI도 음료수 갯수에 맞춰 동적으로 생성해볼까?
+// 0. 데이터 전체를 읽어오고 수정하고 싶은 항목을 선택해서 수정할 수 있도록 해야함.
+// 1. 사용자 모드에서의 행동에 따라 데이터를 기록해야함 (구매날짜,판매품목,수익,재고량업데이트 등?)
+// 2. 구매 기록은 다른 파일을 만들어서 하는 게 좋을듯.
+// 3. 처음에 파일을 여는 것이 아니라 관리자모드, 사용자모드로 진입할 때마다 파일을 여는 방식이 좋을까?
+// 4. UI도 음료수 갯수에 맞춰 동적으로 생성해볼까?
 
 
 // 자판기 출력 함수
