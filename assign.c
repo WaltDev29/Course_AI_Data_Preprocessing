@@ -30,7 +30,7 @@ int main(void) {
 	char name[100];
 	int price;
 	int stock;
-	int num;
+	int drinkTypes;
 
 	FILE* fp = fopen("machine_data.txt", "a+t");
 	if (fp == NULL) {
@@ -41,25 +41,20 @@ int main(void) {
 		
 	fseek(fp, 0, SEEK_SET);
 
-	fscanf(fp, "%d", &num);	
-	Drink* drinks = (Drink*)malloc(num * sizeof(Drink));	
-	for (int i=0; i< num; i++) {
+	fscanf(fp, "%d", &drinkTypes);	
+	Drink* drinks = (Drink*)malloc(drinkTypes * sizeof(Drink));	
+	for (int i=0; i< drinkTypes; i++) {
 		fscanf(fp, "%s %d %d", name, &price, &stock);
 		strcpy(drinks[i].name, name);
 		drinks[i].price = price;
 		drinks[i].stock = stock;		
 	}
-	for (int i = 0; i < num; i++) {
+	for (int i = 0; i < drinkTypes; i++) {
 		printf("%s %d %d\n", drinks[i].name, drinks[i].price, drinks[i].stock);
 	}
 
 	/*fclose(fp);
 	return 0;*/
-
-
-	
-
-	int drinkTypes = num;
 
 	printf("### 음료 자판기 ###\n\n");
 	printMachine(0, 0, machineMoney, userMoney);
