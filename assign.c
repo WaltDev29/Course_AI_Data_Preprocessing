@@ -1,9 +1,11 @@
 #define _CRT_SECURE_NO_WARNINGS
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #define FILE_NAME "test.txt"
+
 
 // 구조체 선언
 typedef struct {
@@ -14,6 +16,7 @@ typedef struct {
 
 
 // 함수 선언
+// 사용자 모드 관련
 void printMachine(int drink, int change, int machineMoney, int userMoney);
 int insertMoney(int* userMoney, int* machineMoney);
 int selectMenu(int drinkTypes, Drink drinks[], int* choice, int* machineMoney);
@@ -21,7 +24,9 @@ int dispenseDrink(Drink drinks[], int choice, int machineMoney, int userMoney, i
 int returnChange(int* machineMoney, int* userMoney);
 int exitProgram();
 int askYesNo(int state1, int state2);
-
+// 관리자 모드 관련
+int showAdminScreen();
+void printFile(FILE* fp);
 void writeFile(FILE* fp, Drink drinks[], int drinkTypes, int totalSales, int totalRevenue);
 
 
@@ -29,8 +34,8 @@ int main(void) {
 	// 상호작용 관련 변수
 	int userMoney = 5000;	// 사용자 소지 금액
 	int machineMoney = 0;	// 자판기 소지 금액	
-	int state = 0;		// 자판기 상태
 	int mode = 0;	// 접속 모드 
+	int state = 0;		// 자판기 상태
 	int choice = 0;		// 사용자 입력값	
 
 	// 파일 읽기용 변수
@@ -68,13 +73,7 @@ int main(void) {
 	// 음료수 목록 갖고 와서 drinks 배열 생성
 	Drink* drinks = (Drink*)malloc(drinkTypes * sizeof(Drink));
 	for (int i = 0; i < drinkTypes; i++) {
-		char name[50];
-		int price;
-		int stock;
-		fscanf(fp, "%s %d %d", name, &price, &stock);
-		strcpy(drinks[i].name, name);
-		drinks[i].price = price;
-		drinks[i].stock = stock;
+		fscanf(fp, "%s %d %d", drinks[i].name, &drinks[i].price, &drinks[i].stock);
 	}
 
 	// 디버깅용 출력	
@@ -104,27 +103,16 @@ int main(void) {
 		// 관리자 모드
 		if (mode == 0) {
 			int answer;	// 관리자 입력	
-			int selectedDrinkIndex;	// 수정할 음료 번호
-			char data[100]; // 파일 내용 담을 버퍼
+			int selectedDrinkIndex;	// 수정할 음료 번호			
 			while (1) {
-				system("cls");
-				printf("--- 관리자 모드 ---\n\n");
-
-				printf("읽기 모드 : 0\n쓰기 모드 : 1\n종료 : -1\n\n");
-				printf("입력 : ");
-				scanf("%d", &answer);
-				getchar();
+				// 관리자 모드 첫 화면 출력
+				answer = showAdminScreen();				
 
 				fseek(fp, 0, SEEK_SET);
 
 				// 읽기 모드
 				if (answer == 0) {
-					system("cls");
-					while (fgets(data, sizeof(data), fp) != NULL) {
-						printf("%s", data);
-					}
-					printf("\n\nEnter를 눌러 처음으로 돌아갑니다.");
-					while (getchar() != '\n');
+					printFile(fp);
 				}
 
 				// 쓰기 모드
@@ -272,11 +260,13 @@ int main(void) {
 					// 프로그램 종료
 				case 4:
 					printf("\n\n프로그램을 종료합니다.");
+					fclose(fp);
 					return 0;
 					break;
 
 				default:
 					printf("프로그램 오류. 프로그램을 종료합니다.");
+					fclose(fp);
 					return -1;
 				}
 			}
@@ -284,6 +274,7 @@ int main(void) {
 
 		else {
 			printf("잘못된 값입니다. 프로그램을 종료합니다.");
+			fclose(fp);
 			return -1;
 		}
 	}
@@ -425,7 +416,6 @@ int dispenseDrink(Drink drinks[], int choice, int machineMoney, int userMoney, i
 	if (state == 1 && machineMoney <= 0) state = 0;
 	if (state == 3 && machineMoney <= 0) state = exitProgram();
 
-
 	return state;
 }
 // 잔돈 반환
@@ -472,7 +462,28 @@ int askYesNo(int state1, int state2) {
 
 // 관리자 모드 관련 함수
 
-// 파일 새로 쓰기 함수
+// 관리자 모드 첫 화면 출력
+int showAdminScreen() {
+	int answer;
+	system("cls");
+	printf("--- 관리자 모드 ---\n\n");
+	printf("읽기 모드 : 0\n쓰기 모드 : 1\n종료 : -1\n\n");
+	printf("입력 : ");
+	scanf("%d", &answer);
+	getchar();
+	return answer;
+}
+// 파일 내용 출력
+void printFile(FILE* fp) {
+	char tmp[100]; // 파일 내용 담을 버퍼
+	system("cls");
+	while (fgets(tmp, sizeof(tmp), fp) != NULL) {
+		printf("%s", tmp);
+	}
+	printf("\n\nEnter를 눌러 처음으로 돌아갑니다.");
+	while (getchar() != '\n');
+}
+// 파일 새로 쓰기
 void writeFile(FILE* fp, Drink drinks[], int drinkTypes, int totalSales, int totalRevenue) {
 	FILE* temp = fopen("temp.txt", "w+t");
 	fprintf(temp, "음료 종류 : %d\n", drinkTypes);
