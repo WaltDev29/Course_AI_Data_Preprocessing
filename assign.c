@@ -1,9 +1,10 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 typedef struct {
-	char* name;
+	char name[50];
 	int price;
 	int stock;
 } Drink;
@@ -26,11 +27,39 @@ int main(void) {
 	int mode = 0;	// 접속 모드 
 	int choice = 0;		// 사용자 입력값	
 
-	Drink coke = { "콜라", 1000, 10 };
-	Drink cider = { "사이다", 1200, 10 };
-	Drink water = { "물", 800, 10 };
-	Drink powerAde = { "파워에이드", 1500, 10 };
-	Drink drinks[] = { coke, cider, water, powerAde };
+
+	// 파일 읽기 용 변수
+	char name[100];
+	int price;
+	int stock;
+	int num;
+
+	FILE* fp = fopen("machine_data.txt", "a+t");
+	if (fp == NULL) {
+		printf("데이터 불러오기 실패\n");
+		printf("프로그램을 종료합니다.\n");
+		return -1;
+	}
+		
+	fseek(fp, 0, SEEK_SET);
+
+	fscanf(fp, "%d", &num);	
+	Drink* drinks = (Drink*)malloc(num * sizeof(Drink));	
+	for (int i=0; i< num; i++) {
+		fscanf(fp, "%s %d %d", name, &price, &stock);
+		strcpy(drinks[i].name, name);
+		drinks[i].price = price;
+		drinks[i].stock = stock;		
+	}
+	for (int i = 0; i < num; i++) {
+		printf("%s %d %d\n", drinks[i].name, drinks[i].price, drinks[i].stock);
+	}
+
+	fclose(fp);
+	return 0;
+
+
+	
 
 	int drinkTypes = sizeof(drinks) / sizeof(Drink);
 
@@ -44,17 +73,10 @@ int main(void) {
 
 	while (1) {
 		if (mode == 0) {
-			int answer;	// 관리자 입력
-			FILE* fp = fopen("machine_data.txt", "a+t");
+			int answer;	// 관리자 입력						
 			while (1) {
 				system("cls");
 				printf("--- 관리자 모드 ---\n\n");
-
-				if (fp == NULL) {
-					printf("데이터 불러오기 실패\n");
-					printf("프로그램을 종료합니다.\n");
-					return -1;
-				}
 
 				printf("읽기 모드 : 0\n쓰기 모드 : 1\n종료 : -1\n\n");
 				printf("입력 : ");
@@ -66,15 +88,17 @@ int main(void) {
 					while (fgets(data, sizeof(data), fp) != NULL) {
 						printf("%s", data);
 					}
-					printf("\n");
+					printf("\n\nEnter를 눌러 처음으로 돌아갑니다.");
+					while (getchar() != '\n');
 				}
 
 				else if (answer == 1) {
 					printf("\n데이터를 입력하세요 (EXIT 입력 시 입력 종료) : \n");
 					while (1) {
+						fgets(data, sizeof(data), stdin);
 						scanf("%s", data);
 						getchar();
-						if (data == "EXIT") break;
+						if (strcmp(data, "EXIT") == 0) break;
 						fprintf(fp, data);
 					}
 				}
@@ -141,10 +165,14 @@ int main(void) {
 }
 
 
+// 지금 하고 있는 것.
+// 음료 리스트를 미리 작성해놓았음.
+// 음료 리스트를 읽어서 동적으로 drinks 리스트를 만들도록 함.
 
 // todo
+// 0. 프로그램 실행 시 파일로부터 데이터를 읽어서 음료리스트 만들기 
 // 1. 관리자 모드 구현 (파일 입출력) (데이터를 어떻게 기록할 것인가.)
-// 2. 프로그램 실행 시 파일로부터 데이터를 읽어서 음료
+// 2. UI도 음료수 갯수에 맞춰 동적으로 생성해볼까?
 
 
 // 자판기 출력 함수
