@@ -10,8 +10,8 @@ typedef struct {
 
 void printMachine(int drink, int change, int machineMoney, int userMoney);
 int insertMoney(int* userMoney, int* machineMoney);
-int selectMenu(int* drinkTypes, Drink drinks[], int* choice, int* machineMoney);
-int dispenseDrink(Drink drinks[], int* choice, int* machineMoney, int state);
+int selectMenu(int drinkTypes, Drink drinks[], int* choice, int* machineMoney);
+int dispenseDrink(Drink drinks[], int choice, int machineMoney, int state);
 int returnChange(int* machineMoney, int* userMoney);
 int exitProgram();
 int askYesNo(int state1, int state2);
@@ -61,13 +61,13 @@ int main(void) {
 					// 메뉴 출력
 				case 1:
 					printMachine(0, 0, machineMoney, userMoney);
-					state = selectMenu(&drinkTypes, drinks, &choice, &machineMoney);
+					state = selectMenu(drinkTypes, drinks, &choice, &machineMoney);
 					break;
 
 					// 음료 제공
 				case 2:
 					printMachine(1, 0, machineMoney, userMoney);
-					state = dispenseDrink(drinks, &choice, &machineMoney, state);
+					state = dispenseDrink(drinks, choice, machineMoney, state);
 					break;
 
 					// 잔돈 반환
@@ -177,17 +177,17 @@ int insertMoney(int* userMoney, int* machineMoney) {
 	return state;
 }
 
-int selectMenu(int* drinkTypes, Drink drinks[], int* choice, int* machineMoney) {
+int selectMenu(int drinkTypes, Drink drinks[], int* choice, int* machineMoney) {
 	int state;
 	printf("\n--- 메뉴 ---\n\n");
-	for (int i = 0; i < *drinkTypes; i++) {
+	for (int i = 0; i < drinkTypes; i++) {
 		printf("%d. %s : %d원\n", i + 1, drinks[i].name, drinks[i].price);
 	}
 
 	printf("\n번호를 입력해주세요 (0 : 처음으로) : ");
-	while (scanf("%d", choice) != 1 || (*choice < 0 || *choice > *drinkTypes)) {
+	while (scanf("%d", choice) != 1 || (*choice < 0 || *choice > drinkTypes)) {
 		while (getchar() != '\n');
-		printf("1~%d의 숫자를 입력해주세요.\n", *drinkTypes);
+		printf("1~%d의 숫자를 입력해주세요.\n", drinkTypes);
 		printf("\n번호를 입력해주세요 : ");
 	}
 	while (getchar() != '\n');
@@ -210,17 +210,17 @@ int selectMenu(int* drinkTypes, Drink drinks[], int* choice, int* machineMoney) 
 	return state;
 }
 
-int dispenseDrink(Drink drinks[], int* choice, int* machineMoney, int state) {	
+int dispenseDrink(Drink drinks[], int choice, int machineMoney, int state) {	
 	char answer;
 	printf("\n--- 음료 제공 ---\n\n");
-	printf("%s 드리겠습니다.\n\nEnter키를 눌러 받아주세요.\n", drinks[*choice - 1].name);
+	printf("%s 드리겠습니다.\n\nEnter키를 눌러 받아주세요.\n", drinks[choice - 1].name);
 	while (getchar() != '\n');
 	printf("맛있게 드세요!\n\n");
 	printf("음료를 더 주문하실 건가요?\n");
 
 	state = askYesNo(1, 3);
-	if (state == 1 && *machineMoney <= 0) state = 0;
-	if (state == 3 && *machineMoney <= 0) state = exitProgram();	
+	if (state == 1 && machineMoney <= 0) state = 0;
+	if (state == 3 && machineMoney <= 0) state = exitProgram();	
 	
 
 	return state;
