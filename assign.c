@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #define FILE_NAME "test.txt"
 
@@ -20,15 +21,15 @@ typedef struct {
 void printMachine(int drink, int change, int machineMoney, int userMoney);
 int insertMoney(int* userMoney, int* machineMoney);
 int selectMenu(int drinkTypes, Drink drinks[], int* choice, int* machineMoney);
-int dispenseDrink(Drink drinks[], int choice, int machineMoney, int userMoney, int state);
+int dispenseDrink(Drink drinks[], int choice, int machineMoney, int userMoney, int state, int* totalSales, int* totalRevenue);
 int returnChange(int* machineMoney, int* userMoney);
 int exitProgram();
 int askYesNo(int state1, int state2);
 // 관리자 모드 관련
 int showAdminScreen();
 void printFile(FILE* fp);
-void writeFile(FILE* fp, Drink drinks[], int drinkTypes, int totalSales, int totalRevenue);
-
+FILE* writeFile(FILE* fp, Drink drinks[], int drinkTypes, int totalSales, int totalRevenue);
+void logSales(Drink drinks[], int choice, int totalSales);
 
 int main(void) {
 	// 상호작용 관련 변수
@@ -77,14 +78,14 @@ int main(void) {
 	}
 
 	// 디버깅용 출력	
-	printf("음료 종류 : %d개\n", drinkTypes);
-	printf("총 판매량 : %d개\n", totalSales);
-	printf("총 수익 : %d원\n", totalRevenue);
-	// drinks 배열
-	printf("\n음료 목록\n");
-	for (int i = 0; i < drinkTypes; i++) {
-		printf("%-20s %-10d %-10d\n", drinks[i].name, drinks[i].price, drinks[i].stock);
-	}
+	//printf("음료 종류 : %d개\n", drinkTypes);
+	//printf("총 판매량 : %d개\n", totalSales);
+	//printf("총 수익 : %d원\n", totalRevenue);
+	//// drinks 배열
+	//printf("\n음료 목록\n");
+	//for (int i = 0; i < drinkTypes; i++) {
+	//	printf("%-20s %-10d %-10d\n", drinks[i].name, drinks[i].price, drinks[i].stock);
+	//}
 	
 	/*fclose(fp);
 	return 0;*/
@@ -94,9 +95,13 @@ int main(void) {
 		// 초기 화면
 		printMachine(0, 0, machineMoney, userMoney);
 		printf("\n--- 모드 입력 ---\n");
-		printf("관리자 모드 : 0\n사용자 모드 : 1\n\n");
+		printf("관리자 모드 : 0\n사용자 모드 : 1\n종료 : -1\n\n");
 		printf("입력 : ");
-		scanf("%d", &mode);
+		while (scanf("%d", &mode) != 1) {
+			while (getchar() != '\n');
+			printf("\n숫자를 입력해주세요.\n");
+			printf("다시 입력 : ");
+		}
 		while (getchar() != '\n');
 
 
@@ -127,7 +132,7 @@ int main(void) {
 					}
 
 					// 수정할 음료 선택
-					printf("\n수정할 음료를 선택하세요.\n");
+					printf("\n수정할 항목을 선택하세요.\n");
 					printf("0 : 뒤로 가기\n\n");
 					printf("입력 : ");
 					while (scanf("%d", &selectedDrinkIndex) != 1 || (selectedDrinkIndex < 0 || selectedDrinkIndex > drinkTypes)) {
@@ -200,8 +205,18 @@ int main(void) {
 						scanf("%c", &yn);
 						while (getchar() != '\n');
 						if (yn == 'y' || yn == 'Y') {					
-							strcpy(drinks[selectedDrinkIndex - 1].name, name);
-							writeFile(fp, drinks, drinkTypes, totalSales, totalRevenue);
+							switch (editField) {
+							case 1:
+								strcpy(drinks[selectedDrinkIndex - 1].name, name);
+								break;
+							case 2:
+								drinks[selectedDrinkIndex - 1].price = price;
+								break;
+							case 3:
+								drinks[selectedDrinkIndex - 1].stock = stock;
+								break;
+							}							
+							fp = writeFile(fp, drinks, drinkTypes, totalSales, totalRevenue);
 							printf("\n입력한 내용이 저장되었습니다.\n\n");
 							printf("Enter를 입력하여 계속.\n");
 							while (getchar() != '\n');
@@ -214,7 +229,13 @@ int main(void) {
 					}
 				}
 
-				else break;
+				else if (answer == -1) break;
+				else {
+					printf("\n잘못된 값입니다.\n");
+					printf("Enter를 입력하여 다시 입력.\n");
+					while (getchar() != '\n');
+					continue;
+				}
 			}
 			printf("프로그램을 종료합니다.\n");
 			fclose(fp);
@@ -248,7 +269,12 @@ int main(void) {
 					// 음료 제공
 				case 2:
 					printMachine(1, 0, machineMoney, userMoney);
-					state = dispenseDrink(drinks, choice, machineMoney, userMoney, state);
+					state = dispenseDrink(drinks, choice, machineMoney, userMoney, state, &totalSales, &totalRevenue);
+					totalSales++;
+					totalRevenue += drinks[choice - 1].price;
+					drinks[choice - 1].stock--;
+					writeFile(fp, drinks, drinkTypes, totalSales, totalRevenue);
+					logSales(drinks, choice, totalSales);
 					break;
 
 					// 잔돈 반환
@@ -272,6 +298,12 @@ int main(void) {
 			}
 		}
 
+		else if (mode == -1) {
+			printf("\n\n프로그램을 종료합니다.");
+			fclose(fp);
+			return 0;
+		}
+
 		else {
 			printf("잘못된 값입니다. 프로그램을 종료합니다.");
 			fclose(fp);
@@ -283,15 +315,10 @@ int main(void) {
 
 
 // 지금 하고 있는 것.
-// 수정할 내용을 선택하고 수정할 값을 입력하는 것까지 했음.
-// 지금 함수로 분리해야 코드 짜기 편할 것 같다.
 
 // todo
-// 0. 수정할 항목 선택했으니 실제로 수정하는 프로세스를 구현해야 함. (깔끔하게...)
-// 1. 사용자 모드에서의 행동에 따라 데이터를 기록해야함 (구매날짜,판매품목,수익,재고량업데이트 등?)
-// 2. 구매 기록은 다른 파일을 만들어서 하는 게 좋을듯.
-// 3. 처음에 파일을 여는 것이 아니라 관리자모드, 사용자모드로 진입할 때마다 파일을 여는 방식이 좋을까?
-// 4. UI도 음료수 갯수에 맞춰 동적으로 생성해볼까?
+// 0. 음료수를 추가하거나 삭제하는 코드 만들기
+// 1. UI도 음료수 갯수에 맞춰 동적으로 생성해볼까?
 
 
 // 자판기 출력 함수
@@ -374,7 +401,8 @@ int selectMenu(int drinkTypes, Drink drinks[], int* choice, int* machineMoney) {
 	int state;
 	printf("\n--- 메뉴 ---\n\n");
 	for (int i = 0; i < drinkTypes; i++) {
-		printf("%d. %s : %d원\n", i + 1, drinks[i].name, drinks[i].price);
+		if (drinks[i].stock <= 0) printf("%d. %s : %d원 (매진)\n", i + 1, drinks[i].name, drinks[i].price);
+		else printf("%d. %s : %d원\n", i + 1, drinks[i].name, drinks[i].price);
 	}
 
 	printf("\n번호를 입력해주세요 (0 : 처음으로) : ");
@@ -384,6 +412,12 @@ int selectMenu(int drinkTypes, Drink drinks[], int* choice, int* machineMoney) {
 		printf("\n번호를 입력해주세요 : ");
 	}
 	while (getchar() != '\n');
+	if (*choice != 0 && drinks[*choice - 1].stock <= 0) {
+		printf("\n해당 음료는 현재 재고가 없습니다.\n");
+		printf("Enter를 입력하여 메뉴로 돌아갑니다.\n");		
+		while (getchar() != '\n');
+		return state = 1;
+	}	
 	if (*choice == 0) {
 		if (*machineMoney <= 0) state = 0;
 		else state = 3;
@@ -403,11 +437,12 @@ int selectMenu(int drinkTypes, Drink drinks[], int* choice, int* machineMoney) {
 	return state;
 }
 // 음료 제공
-int dispenseDrink(Drink drinks[], int choice, int machineMoney, int userMoney, int state) {
+int dispenseDrink(Drink drinks[], int choice, int machineMoney, int userMoney, int state, int* totalSales, int* totalRevenue) {
 	char answer;
 	printf("\n--- 음료 제공 ---\n\n");
 	printf("%s 드리겠습니다.\n\nEnter키를 눌러 받아주세요.\n", drinks[choice - 1].name);
-	while (getchar() != '\n');
+	while (getchar() != '\n');	
+
 	printMachine(0, 0, machineMoney, userMoney);
 	printf("\n맛있게 드세요!\n\n");
 	printf("음료를 더 주문하실 건가요?\n");
@@ -484,8 +519,13 @@ void printFile(FILE* fp) {
 	while (getchar() != '\n');
 }
 // 파일 새로 쓰기
-void writeFile(FILE* fp, Drink drinks[], int drinkTypes, int totalSales, int totalRevenue) {
+FILE* writeFile(FILE* fp, Drink drinks[], int drinkTypes, int totalSales, int totalRevenue) {
 	FILE* temp = fopen("temp.txt", "w+t");
+	if (temp == NULL) {
+		printf("파일 불러오기 실패\n");
+		printf("프로그램을 종료합니다.\n");
+		exit(-1);
+	}
 	fprintf(temp, "음료 종류 : %d\n", drinkTypes);
 	fprintf(temp, "총 판매량 : %d\n", totalSales);
 	fprintf(temp, "총 수익 : %d\n\n", totalRevenue);
@@ -499,4 +539,28 @@ void writeFile(FILE* fp, Drink drinks[], int drinkTypes, int totalSales, int tot
 	fclose(temp);
 	remove(FILE_NAME);
 	rename("temp.txt", FILE_NAME);
+
+	fp = fopen(FILE_NAME, "a+t");
+	return fp;
+}
+
+void logSales(Drink drinks[], int choice, int totalSales) {
+	FILE* fp = fopen("salesLog.txt", "a+t");
+	if (fp == NULL) {
+		printf("파일 불러오기 실패\n");
+		printf("프로그램을 종료합니다.\n");
+		exit(-1);
+	}
+
+	time_t t = time(NULL);
+	struct tm* tm_info = localtime(&t);
+	char buffer[100];
+
+	fprintf(fp, "%d.\n", totalSales);
+	strftime(buffer, sizeof(buffer), "%Y.%m.%d %H:%M", tm_info);
+	fprintf(fp, "%s\n", buffer);
+	fprintf(fp, "구매 항목 : %s\n", drinks[choice - 1].name);
+	fprintf(fp, "수익 : %d원\n\n", drinks[choice - 1].price);
+
+	fclose(fp);
 }
