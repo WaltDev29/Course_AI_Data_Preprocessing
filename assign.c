@@ -97,7 +97,7 @@ int main(void) {
 		// 초기 화면
 		printMachine(0, 0, machineMoney, userMoney);
 		printf("\n--- 모드 입력 ---\n");
-		printf("관리자 모드 : 0\n사용자 모드 : 1\n종료 : -1\n\n");
+		printf("관리자 모드 : 1\n사용자 모드 : 2\n종료 : 0\n\n");
 		printf("입력 : ");
 		while (scanf("%d", &mode) != 1) {
 			while (getchar() != '\n');
@@ -107,11 +107,11 @@ int main(void) {
 		while (getchar() != '\n');
 		
 		// 관리자 모드
-		if (mode == 0) {
+		if (mode == 1) {
 			char password[5] = "1234";
-			char userpw[5];
+			char inputPassword[5];
 			printf("비밀번호를 입력하세요 : ");
-			if (scanf("%s", userpw) != 1 || strcmp(password, userpw) != 0) {
+			if (scanf("%s", inputPassword) != 1 || strcmp(password, inputPassword) != 0) {
 				getchar();
 				printf("\n비밀번호가 틀렸습니다.\n");
 				printf("Enter를 입력하여 돌아가기.\n");
@@ -129,12 +129,12 @@ int main(void) {
 				fseek(fp, 0, SEEK_SET);
 
 				// 읽기 모드
-				if (state == 0) {
+				if (state == 1) {
 					printFile(fp);
 				}
 
 				// 쓰기 모드
-				else if (state == 1) {
+				else if (state == 2) {
 					writeModeState = 0;
 					while (writeModeState != 3) {
 						system("cls");
@@ -236,7 +236,13 @@ int main(void) {
 					}
 				}
 
-				else if (state == -1) break;
+				else if (state == 3) {
+					FILE* log = fopen("salesLog.txt", "rt");
+					printFile(log);
+					fclose(log);
+				}
+
+				else if (state == 0) break;
 
 				else {
 					printf("\n잘못된 값입니다.\n");
@@ -245,7 +251,7 @@ int main(void) {
 					continue;
 				}
 			}
-			printf("프로그램을 종료합니다.\n");
+			printf("\n프로그램을 종료합니다.\n");
 			fclose(fp);
 			return 0;
 
@@ -259,7 +265,7 @@ int main(void) {
 
 
 		// 사용자 모드
-		else if (mode == 1) {
+		else if (mode == 2) {
 			state = 0;
 			while (1) {
 				switch (state) {
@@ -308,7 +314,7 @@ int main(void) {
 			}
 		}
 
-		else if (mode == -1) {
+		else if (mode == 0) {
 			printf("\n\n프로그램을 종료합니다.");
 			fclose(fp);
 			return 0;
@@ -330,7 +336,7 @@ int main(void) {
 // 0. 음료수를 추가하거나 삭제하는 코드 만들기
 // 1. 관리자 모드 함수화
 // 2. UI도 음료수 갯수에 맞춰 동적으로 생성해볼까?
-// 3. 판매기록도 열람 ㄱ?
+// 3. printFile 함수 내에서 파일을 열고 닫도록 수정(매개변수로는 텍스트파일 이름을 받도록)
 
 
 // 자판기 출력 함수
@@ -514,7 +520,7 @@ int showAdminScreen() {
 	int answer;
 	system("cls");
 	printf("--- 관리자 모드 ---\n\n");
-	printf("읽기 모드 : 0\n쓰기 모드 : 1\n종료 : -1\n\n");
+	printf("읽기 모드 : 1\n쓰기 모드 : 2\n판매 기록 열람 : 3\n종료 : 0\n\n");
 	printf("입력 : ");
 	scanf("%d", &answer);
 	getchar();
