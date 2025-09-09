@@ -30,6 +30,8 @@ int showAdminScreen();
 void printFile(FILE* fp);
 FILE* writeFile(FILE* fp, Drink drinks[], int drinkTypes, int totalSales, int totalRevenue);
 void logSales(Drink drinks[], int choice, int totalSales);
+int selectDrinkToEdit(Drink drinks[], int drinkTypes);
+int selectFieldToEdit(Drink drinks[], int selectedDrinkIndex);
 
 int main(void) {
 	// 상호작용 관련 변수
@@ -86,7 +88,7 @@ int main(void) {
 	//for (int i = 0; i < drinkTypes; i++) {
 	//	printf("%-20s %-10d %-10d\n", drinks[i].name, drinks[i].price, drinks[i].stock);
 	//}
-	
+
 	/*fclose(fp);
 	return 0;*/
 
@@ -107,129 +109,126 @@ int main(void) {
 
 		// 관리자 모드
 		if (mode == 0) {
-			int answer;	// 관리자 입력	
+			state = 0;
 			int selectedDrinkIndex;	// 수정할 음료 번호			
+			int editField; // 수정할 항목
+			int writeModeState = 0;	// 쓰기 모드 단계
 			while (1) {
 				// 관리자 모드 첫 화면 출력
-				answer = showAdminScreen();				
+				state = showAdminScreen();
 
 				fseek(fp, 0, SEEK_SET);
 
 				// 읽기 모드
-				if (answer == 0) {
+				if (state == 0) {
 					printFile(fp);
 				}
 
 				// 쓰기 모드
-				else if (answer == 1) {
-					system("cls");
-					// 음료 목록 출력
-					printf("---음료 목록---\n\n");
-					printf("   %-17s %-10s %-10s\n", "이름", "가격", "재고량");
-					printf("-----------------------------------------------\n");
-					for (int i = 0; i < drinkTypes; i++) {
-						printf("%d. %-17s %-10d %-10d\n", i + 1, drinks[i].name, drinks[i].price, drinks[i].stock);
-					}
-
-					// 수정할 음료 선택
-					printf("\n수정할 항목을 선택하세요.\n");
-					printf("0 : 뒤로 가기\n\n");
-					printf("입력 : ");
-					while (scanf("%d", &selectedDrinkIndex) != 1 || (selectedDrinkIndex < 0 || selectedDrinkIndex > drinkTypes)) {
-						while (getchar() != '\n');
-						printf("\n0~%d의 숫자를 입력해주세요.\n", drinkTypes);
-						printf("입력 : ");
-					}
-					if (selectedDrinkIndex == 0) continue;
-
-					// 수정할 내용 선택					
-					int editField;
-					system("cls");
-					printf("1. 이름 : %s\n2. 가격 : %d\n3. 재고량 : %d\n\n", drinks[selectedDrinkIndex -1].name, drinks[selectedDrinkIndex -1].price, drinks[selectedDrinkIndex -1].stock);
-					printf("수정할 항목의 번호를 선택하세요.\n");
-					printf("0 : 뒤로 가기\n\n");
-					printf("입력 : ");
-					while (scanf("%d", &editField) != 1 || (editField < 0 || editField > 3)) {
-						while (getchar() != '\n');
-						printf("\n0~3의 숫자를 입력해주세요.\n");
-						printf("입력 : ");
-					}
-					if (editField == 0) continue;
-
-					// 선택 사항 수정
-					while (1) {
-						printf("\n수정할 내용을 입력해주세요.\n\n");
-						char name[50];
-						int price;
-						int stock;
-						char yn;
-						switch (editField) {
+				else if (state == 1) {
+					writeModeState = 0;
+					while (writeModeState != 3) {
+						system("cls");
+						switch (writeModeState) {
+							// 음료 목록 출력 및 선택
+						case 0:
+							selectedDrinkIndex = selectDrinkToEdit(drinks, drinkTypes);
+							if (selectedDrinkIndex == 0) writeModeState = 3;
+							else writeModeState = 1;
+							break;
+							// 수정할 내용 선택					
 						case 1:
-							printf("이름 : ");
-							scanf("%s", name);
-							printf("\n입력 내용을 확인해주세요.\n");
-							printf("입력 내용 : %s\n\n", name);
+							editField = selectFieldToEdit(drinks, selectedDrinkIndex);
+							if (editField == 0) writeModeState = 0;
+							else writeModeState = 2;
 							break;
 						case 2:
-							printf("가격 : ");
-							while (scanf("%d", &price) != 1 || price < 0 || price % 10 != 0) {
+							// 선택 사항 수정
+							while (1) {
+								printf("\n수정할 내용을 입력해주세요.\n\n");
+								char name[50];
+								int price;
+								int stock;
+								char yn;
+								switch (editField) {
+								case 1:
+									printf("이름 : ");
+									scanf("%s", name);
+									printf("\n입력 내용을 확인해주세요.\n");
+									printf("입력 내용 : %s\n\n", name);
+									break;
+								case 2:
+									printf("가격 : ");
+									while (scanf("%d", &price) != 1 || price < 0 || price % 10 != 0) {
+										while (getchar() != '\n');
+										if (price % 10 != 0) {
+											printf("\n10원 단위로 입력해주세요.\n\n");
+										}
+										else {
+											printf("\n잘못된 값을 입력했습니다.\n");
+										}
+										printf("가격 : ");
+									}
+									printf("\n입력 내용을 확인해주세요.\n");
+									printf("입력 내용 : %d\n\n", price);
+									break;
+								case 3:
+									printf("재고량 : ");
+									while (scanf("%d", &stock) != 1 || stock < 0) {
+										while (getchar() != '\n');
+										printf("\n잘못된 값을 입력했습니다.\n");
+										printf("재고량 : ");
+									}
+									printf("\n입력 내용을 확인해주세요.\n");
+									printf("입력 내용 : %d\n\n", stock);
+									break;
+								default:
+									printf("입력 오류\n");
+									return -1;
+								}
 								while (getchar() != '\n');
-								if (price % 10 != 0) {
-									printf("\n10원 단위로 입력해주세요.\n\n");
+								printf("입력한 내용을 저장하시겠습니까? (Q : 수정 취소)\n");
+								printf("Y/N : ");
+								scanf("%c", &yn);
+								while (getchar() != '\n');
+								if (yn == 'y' || yn == 'Y') {
+									switch (editField) {
+									case 1:
+										strcpy(drinks[selectedDrinkIndex - 1].name, name);
+										break;
+									case 2:
+										drinks[selectedDrinkIndex - 1].price = price;
+										break;
+									case 3:
+										drinks[selectedDrinkIndex - 1].stock = stock;
+										break;
+									}
+									fp = writeFile(fp, drinks, drinkTypes, totalSales, totalRevenue);
+									printf("\n입력한 내용이 저장되었습니다.\n\n");
+									printf("Enter를 입력하여 계속.\n");
+									while (getchar() != '\n');
+									writeModeState = 3;
+									break;
 								}
-								else {
-									printf("\n잘못된 값을 입력했습니다.\n");
+								else if (yn == 'n' || yn == 'N') {
+									printf("다시 입력해주세요.\n\n");									
 								}
-								printf("가격 : ");
+								else if (yn == 'q' || yn == 'Q') {
+									writeModeState = 3;
+									break;
+								}
 							}
-							printf("\n입력 내용을 확인해주세요.\n");
-							printf("입력 내용 : %d\n\n", price);
 							break;
 						case 3:
-							printf("재고량 : ");
-							while (scanf("%d", &stock) != 1 || stock < 0) {
-								while (getchar() != '\n');
-								printf("\n잘못된 값을 입력했습니다.\n");
-								printf("재고량 : ");
-							}
-							printf("\n입력 내용을 확인해주세요.\n");
-							printf("입력 내용 : %d\n\n", stock);
 							break;
 						default:
-							printf("입력 오류\n");
-							return -1;
-						}
-						while (getchar() != '\n');
-						printf("입력한 내용을 저장하시겠습니까? (Q : 수정 취소)\n");
-						printf("Y/N : ");
-						scanf("%c", &yn);
-						while (getchar() != '\n');
-						if (yn == 'y' || yn == 'Y') {					
-							switch (editField) {
-							case 1:
-								strcpy(drinks[selectedDrinkIndex - 1].name, name);
-								break;
-							case 2:
-								drinks[selectedDrinkIndex - 1].price = price;
-								break;
-							case 3:
-								drinks[selectedDrinkIndex - 1].stock = stock;
-								break;
-							}							
-							fp = writeFile(fp, drinks, drinkTypes, totalSales, totalRevenue);
-							printf("\n입력한 내용이 저장되었습니다.\n\n");
-							printf("Enter를 입력하여 계속.\n");
-							while (getchar() != '\n');
 							break;
 						}
-						else if (yn == 'n' || yn == 'N') {
-							printf("다시 입력해주세요.\n\n");
-						}
-						else if (yn == 'q' || yn == 'Q') break;
 					}
 				}
 
-				else if (answer == -1) break;
+				else if (state == -1) break;
+
 				else {
 					printf("\n잘못된 값입니다.\n");
 					printf("Enter를 입력하여 다시 입력.\n");
@@ -252,6 +251,7 @@ int main(void) {
 
 		// 사용자 모드
 		else if (mode == 1) {
+			state = 0;
 			while (1) {
 				switch (state) {
 					// 현금 투입
@@ -270,6 +270,7 @@ int main(void) {
 				case 2:
 					printMachine(1, 0, machineMoney, userMoney);
 					state = dispenseDrink(drinks, choice, machineMoney, userMoney, state, &totalSales, &totalRevenue);
+					// 파일에 기록
 					totalSales++;
 					totalRevenue += drinks[choice - 1].price;
 					drinks[choice - 1].stock--;
@@ -318,7 +319,9 @@ int main(void) {
 
 // todo
 // 0. 음료수를 추가하거나 삭제하는 코드 만들기
-// 1. UI도 음료수 갯수에 맞춰 동적으로 생성해볼까?
+// 1. 관리자 모드 함수화
+// 2. UI도 음료수 갯수에 맞춰 동적으로 생성해볼까?
+// 3. 판매기록도 열람 ㄱ?
 
 
 // 자판기 출력 함수
@@ -414,10 +417,10 @@ int selectMenu(int drinkTypes, Drink drinks[], int* choice, int* machineMoney) {
 	while (getchar() != '\n');
 	if (*choice != 0 && drinks[*choice - 1].stock <= 0) {
 		printf("\n해당 음료는 현재 재고가 없습니다.\n");
-		printf("Enter를 입력하여 메뉴로 돌아갑니다.\n");		
+		printf("Enter를 입력하여 메뉴로 돌아갑니다.\n");
 		while (getchar() != '\n');
 		return state = 1;
-	}	
+	}
 	if (*choice == 0) {
 		if (*machineMoney <= 0) state = 0;
 		else state = 3;
@@ -441,7 +444,7 @@ int dispenseDrink(Drink drinks[], int choice, int machineMoney, int userMoney, i
 	char answer;
 	printf("\n--- 음료 제공 ---\n\n");
 	printf("%s 드리겠습니다.\n\nEnter키를 눌러 받아주세요.\n", drinks[choice - 1].name);
-	while (getchar() != '\n');	
+	while (getchar() != '\n');
 
 	printMachine(0, 0, machineMoney, userMoney);
 	printf("\n맛있게 드세요!\n\n");
@@ -563,4 +566,43 @@ void logSales(Drink drinks[], int choice, int totalSales) {
 	fprintf(fp, "수익 : %d원\n\n", drinks[choice - 1].price);
 
 	fclose(fp);
+}
+
+int selectDrinkToEdit(Drink drinks[], int drinkTypes) {
+	int selectedDrinkIndex;
+	// 음료 목록 출력
+	printf("---음료 목록---\n\n");
+	printf("   %-17s %-10s %-10s\n", "이름", "가격", "재고량");
+	printf("-----------------------------------------------\n");
+	for (int i = 0; i < drinkTypes; i++) {
+		printf("%d. %-17s %-10d %-10d\n", i + 1, drinks[i].name, drinks[i].price, drinks[i].stock);
+	}
+
+	// 수정할 음료 선택
+	printf("\n수정할 항목을 선택하세요.\n");
+	printf("0 : 뒤로 가기\n\n");
+	printf("입력 : ");
+	while (scanf("%d", &selectedDrinkIndex) != 1 || (selectedDrinkIndex < 0 || selectedDrinkIndex > drinkTypes)) {
+		while (getchar() != '\n');
+		printf("\n0~%d의 숫자를 입력해주세요.\n", drinkTypes);
+		printf("입력 : ");
+	}
+
+	return selectedDrinkIndex;
+}
+
+int selectFieldToEdit(Drink drinks[], int selectedDrinkIndex) {
+	int editField;
+	system("cls");
+	printf("1. 이름 : %s\n2. 가격 : %d\n3. 재고량 : %d\n\n", drinks[selectedDrinkIndex - 1].name, drinks[selectedDrinkIndex - 1].price, drinks[selectedDrinkIndex - 1].stock);
+	printf("수정할 항목의 번호를 선택하세요.\n");
+	printf("0 : 뒤로 가기\n\n");
+	printf("입력 : ");
+	while (scanf("%d", &editField) != 1 || (editField < 0 || editField > 3)) {
+		while (getchar() != '\n');
+		printf("\n0~3의 숫자를 입력해주세요.\n");
+		printf("입력 : ");
+	}
+
+	return editField;
 }
