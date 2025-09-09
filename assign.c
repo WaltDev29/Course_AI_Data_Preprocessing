@@ -105,10 +105,19 @@ int main(void) {
 			printf("다시 입력 : ");
 		}
 		while (getchar() != '\n');
-
-
+		
 		// 관리자 모드
 		if (mode == 0) {
+			char password[5] = "1234";
+			char userpw[5];
+			printf("비밀번호를 입력하세요 : ");
+			if (scanf("%s", userpw) != 1 || strcmp(password, userpw) != 0) {
+				getchar();
+				printf("\n비밀번호가 틀렸습니다.\n");
+				printf("Enter를 입력하여 돌아가기.\n");
+				while (getchar() != '\n');
+				continue;
+			}
 			state = 0;
 			int selectedDrinkIndex;	// 수정할 음료 번호			
 			int editField; // 수정할 항목
@@ -546,7 +555,7 @@ FILE* writeFile(FILE* fp, Drink drinks[], int drinkTypes, int totalSales, int to
 	fp = fopen(FILE_NAME, "a+t");
 	return fp;
 }
-
+// 판매 로그 기록
 void logSales(Drink drinks[], int choice, int totalSales) {
 	FILE* fp = fopen("salesLog.txt", "a+t");
 	if (fp == NULL) {
@@ -567,7 +576,7 @@ void logSales(Drink drinks[], int choice, int totalSales) {
 
 	fclose(fp);
 }
-
+// 수정할 음료 선택
 int selectDrinkToEdit(Drink drinks[], int drinkTypes) {
 	int selectedDrinkIndex;
 	// 음료 목록 출력
@@ -590,7 +599,7 @@ int selectDrinkToEdit(Drink drinks[], int drinkTypes) {
 
 	return selectedDrinkIndex;
 }
-
+// 수정할 항목 선택
 int selectFieldToEdit(Drink drinks[], int selectedDrinkIndex) {
 	int editField;
 	system("cls");
