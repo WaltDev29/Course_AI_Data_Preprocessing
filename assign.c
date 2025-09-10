@@ -48,14 +48,26 @@ int main(void) {
 	int drinkTypes;	// 음료 종류 가지 수
 	int totalSales;	// 총 판매량
 	int totalRevenue;	// 총 수익
-
+	
 
 	// 파일 열기
-	FILE* fp = fopen(FILE_NAME, "a+t");
+	FILE* fp = fopen("test.txt", "a+t");
 	checkFileOpen(fp);
 	// 커서 위치 처음으로
 	fseek(fp, 0, SEEK_SET);
 
+	if (ftell(fp) == 0) {
+		printf("파일이 비어있습니다.");
+		fprintf(fp, "음료 종류 : 4\n총 판매량 : 0\n총 수익 : 0\n\n");
+		fprintf(fp, "---음료 목록---\n");
+		fprintf(fp, "%-20s %-10s %-10s\n", "이름", "가격", "재고량");
+		fprintf(fp, "-----------------------------------------------\n");
+		fprintf(fp, "%-20s %-10d %-10d\n", "콜라", 1000, 1);
+		fprintf(fp, "%-20s %-10d %-10d\n", "사이다", 1200, 10);
+		fprintf(fp, "%-20s %-10d %-10d\n", "물", 800, 10);
+		fprintf(fp, "%-20s %-10d %-10d\n", "파워에이드", 1500, 10);						
+	}
+	fseek(fp, 0, SEEK_SET);
 
 	// 음료 종류 읽어 오기
 	while (fgetc(fp) != ':');
