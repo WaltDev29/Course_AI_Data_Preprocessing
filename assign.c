@@ -184,10 +184,8 @@ int main(void) {
 									break;
 								case 3:
 									printf("재고량 : ");
-									while (scanf("%d", &stock) != 1 || stock < 0) {
-										while (getchar() != '\n');
-										printf("\n잘못된 값을 입력했습니다.\n");
-										printf("재고량 : ");
+									while (scanf("%d", &stock) != 1 || stock < 0) {										
+										waitEnter("\n잘못된 값을 입력했습니다.\n재고량 : ");
 									}
 									printf("\n입력 내용을 확인해주세요.\n");
 									printf("입력 내용 : %d\n\n", stock);
@@ -195,10 +193,8 @@ int main(void) {
 								default:
 									printf("입력 오류\n");
 									return -1;
-								}
-								while (getchar() != '\n');
-								printf("입력한 내용을 저장하시겠습니까? (Q : 수정 취소)\n");
-								printf("Y/N : ");
+								}								
+								waitEnter("입력한 내용을 저장하시겠습니까? (Q : 수정 취소)\nY/N : ");
 								scanf("%c", &yn);
 								while (getchar() != '\n');
 								if (yn == 'y' || yn == 'Y') {
@@ -214,7 +210,7 @@ int main(void) {
 										break;
 									}
 									fp = writeFile(fp, drinks, drinkTypes, totalSales, totalRevenue);									
-									waitEnter("\n입력한 내용이 저장되었습니다.\n\nEnter를 입력하여 계속.");									
+									waitEnter("\n입력한 내용이 저장되었습니다.\n\nEnter를 입력하여 계속.\n");									
 									writeModeState = 3;
 									break;
 								}
@@ -244,7 +240,7 @@ int main(void) {
 				}
 
 				else {					
-					waitEnter("\n잘못된 값입니다.\nEnter를 입력하여 다시 입력.");
+					waitEnter("\n잘못된 값입니다.\nEnter를 입력하여 다시 입력.\n");
 					continue;
 				}
 			}
@@ -318,7 +314,7 @@ int main(void) {
 		}
 
 		else {			
-			waitEnter("\n잘못된 값입니다.\nEnter를 입력하여 다시 입력.");
+			waitEnter("\n잘못된 값입니다.\nEnter를 입력하여 다시 입력.\n");
 		}
 	}
 	return 0;
@@ -383,16 +379,14 @@ int selectMode() {
 	printf("관리자 모드 : 1\n사용자 모드 : 2\n종료 : 0\n\n");
 	printf("입력 : ");
 	while (scanf("%d", &mode) != 1) {
-		while (getchar() != '\n');
-		printf("\n숫자를 입력해주세요.\n");
-		printf("다시 입력 : ");
+		waitEnter("\n숫자를 입력해주세요.\n다시 입력 : ");
 	}
 	while (getchar() != '\n');
 	return mode;
 }
 
 void waitEnter(char* str) {
-	printf("%s\n", str);
+	printf("%s", str);
 	while (getchar() != '\n');
 }
 
@@ -448,9 +442,8 @@ int selectMenu(int drinkTypes, Drink drinks[], int* choice, int* machineMoney) {
 		printf("\n번호를 입력해주세요 : ");
 	}
 	while (getchar() != '\n');
-	if (*choice != 0 && drinks[*choice - 1].stock <= 0) {
-		printf("\n해당 음료는 현재 재고가 없습니다.\n");
-		waitEnter("Enter를 입력하여 메뉴로 돌아갑니다.");				
+	if (*choice != 0 && drinks[*choice - 1].stock <= 0) {		
+		waitEnter("\n해당 음료는 현재 재고가 없습니다.\nEnter를 입력하여 메뉴로 돌아갑니다.\n");				
 		return state = 1;
 	}
 	if (*choice == 0) {
@@ -476,7 +469,7 @@ int dispenseDrink(Drink drinks[], int choice, int machineMoney, int userMoney, i
 	char answer;
 	printf("\n--- 음료 제공 ---\n\n");
 	printf("%s 드리겠습니다.\n\n", drinks[choice - 1].name);
-	waitEnter("Enter키를 눌러 받아주세요.");	
+	waitEnter("Enter키를 눌러 받아주세요.\n");	
 
 	printMachine(0, 0, machineMoney, userMoney);
 	printf("\n맛있게 드세요!\n\n");
@@ -492,7 +485,7 @@ int dispenseDrink(Drink drinks[], int choice, int machineMoney, int userMoney, i
 int returnChange(int* machineMoney, int* userMoney) {
 	printf("\n--- 잔돈 반환 ---\n\n");
 	printf("잔돈 %d원을 드리겠습니다.\n\n", *machineMoney);
-	waitEnter("Enter키를 눌러 받아주세요.");
+	waitEnter("Enter키를 눌러 받아주세요.\n");
 	*userMoney += *machineMoney;
 	*machineMoney = 0;
 	printMachine(0, 0, *machineMoney, *userMoney);
@@ -537,7 +530,7 @@ int checkPassword() {
 	printf("비밀번호를 입력하세요 : ");
 	if (scanf_s("%s", inputPassword, sizeof(inputPassword)) != 1 || strcmp(password, inputPassword) != 0) {
 		while (getchar() != '\n');		
-		waitEnter("\n비밀번호가 틀렸습니다.\nEnter를 입력하여 돌아가기.");		
+		waitEnter("\n비밀번호가 틀렸습니다.\nEnter를 입력하여 돌아가기.\n");		
 		return 0;
 	}
 	else return 1;
@@ -560,7 +553,7 @@ void printFile(FILE* fp) {
 	while (fgets(tmp, sizeof(tmp), fp) != NULL) {
 		printf("%s", tmp);
 	}
-	waitEnter("\n\nEnter키를 눌러 돌아가기.");
+	waitEnter("\n\nEnter키를 눌러 돌아가기.\n");
 }
 // 파일 새로 쓰기
 FILE* writeFile(FILE* fp, Drink drinks[], int drinkTypes, int totalSales, int totalRevenue) {
@@ -633,10 +626,8 @@ int selectFieldToEdit(Drink drinks[], int selectedDrinkIndex) {
 	printf("수정할 항목의 번호를 선택하세요.\n");
 	printf("0 : 뒤로 가기\n\n");
 	printf("입력 : ");
-	while (scanf("%d", &editField) != 1 || (editField < 0 || editField > 3)) {
-		while (getchar() != '\n');
-		printf("\n0~3의 숫자를 입력해주세요.\n");
-		printf("입력 : ");
+	while (scanf("%d", &editField) != 1 || (editField < 0 || editField > 3)) {		
+		waitEnter("\n0~3의 숫자를 입력해주세요.\n입력 : ");
 	}
 
 	return editField;
@@ -671,7 +662,7 @@ void addDrinkList(FILE* fp, Drink** drinks, int* drinkTypes, int totalSales, int
 			(*drinks)[*drinkTypes - 1].stock = stock;
 
 			writeFile(fp, *drinks, *drinkTypes, totalSales, totalRevenue);			
-			waitEnter("\n음료 추가 완료.\nEnter를 눌러 돌아가기");
+			waitEnter("\n음료 추가 완료.\nEnter를 눌러 돌아가기\n");
 			break;
 		}
 		else if (yn == 'n' || yn == 'N') {
@@ -713,5 +704,5 @@ void deleteDrinkList(FILE* fp, Drink drinks[], int* drinkTypes, int totalSales, 
 	(*drinkTypes)--;
 
 	writeFile(fp, drinks, *drinkTypes, totalSales, totalRevenue);	
-	waitEnter("음료 삭제 완료.\nEnter를 눌러 돌아가기");
+	waitEnter("음료 삭제 완료.\nEnter를 눌러 돌아가기\n");
 }
