@@ -17,6 +17,7 @@ typedef struct {
 
 
 // 함수 선언
+void checkFileOpen(FILE* fp);
 // 사용자 모드 관련
 void printMachine(int drink, int change, int machineMoney, int userMoney);
 int insertMoney(int* userMoney, int* machineMoney);
@@ -51,11 +52,7 @@ int main(void) {
 
 	// 파일 열기
 	FILE* fp = fopen(FILE_NAME, "a+t");
-	if (fp == NULL) {
-		printf("데이터 불러오기 실패\n");
-		printf("프로그램을 종료합니다.\n");
-		return -1;
-	}
+	checkFileOpen(fp);
 	// 커서 위치 처음으로
 	fseek(fp, 0, SEEK_SET);
 
@@ -245,6 +242,7 @@ int main(void) {
 
 				else if (state == 3) {
 					FILE* log = fopen("salesLog.txt", "rt");
+					checkFileOpen(log);
 					printFile(log);
 					fclose(log);
 				}
@@ -385,6 +383,14 @@ void printMachine(int drink, int change, int machineMoney, int userMoney) {
 	printf("-\t                                                 \t\t    -\n");
 	printf("-\t                                                 \t\t    -\n");
 	printf("-----------------------------------------------------------------------------\n");
+}
+
+void checkFileOpen(FILE* fp) {
+	if (fp == NULL) {
+		printf("파일 불러오기 실패\n");
+		printf("프로그램을 종료합니다.\n");
+		exit(-1);
+	}
 }
 
 // 사용자 모드 관련 함수
@@ -540,11 +546,7 @@ void printFile(FILE* fp) {
 // 파일 새로 쓰기
 FILE* writeFile(FILE* fp, Drink drinks[], int drinkTypes, int totalSales, int totalRevenue) {
 	FILE* temp = fopen("temp.txt", "w+t");
-	if (temp == NULL) {
-		printf("파일 불러오기 실패\n");
-		printf("프로그램을 종료합니다.\n");
-		exit(-1);
-	}
+	checkFileOpen(temp);
 	fprintf(temp, "음료 종류 : %d\n", drinkTypes);
 	fprintf(temp, "총 판매량 : %d\n", totalSales);
 	fprintf(temp, "총 수익 : %d\n\n", totalRevenue);
@@ -560,16 +562,13 @@ FILE* writeFile(FILE* fp, Drink drinks[], int drinkTypes, int totalSales, int to
 	rename("temp.txt", FILE_NAME);
 
 	fp = fopen(FILE_NAME, "a+t");
+	checkFileOpen(fp);
 	return fp;
 }
 // 판매 로그 기록
 void logSales(Drink drinks[], int choice, int totalSales) {
 	FILE* fp = fopen("salesLog.txt", "a+t");
-	if (fp == NULL) {
-		printf("파일 불러오기 실패\n");
-		printf("프로그램을 종료합니다.\n");
-		exit(-1);
-	}
+	checkFileOpen(fp);
 
 	time_t t = time(NULL);
 	struct tm* tm_info = localtime(&t);
