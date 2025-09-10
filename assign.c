@@ -18,6 +18,8 @@ typedef struct {
 
 // 함수 선언
 void checkFileOpen(FILE* fp);
+int selectMode();
+void waitEnter(char* str);
 // 사용자 모드 관련
 void printMachine(int drink, int change, int machineMoney, int userMoney);
 int insertMoney(int* userMoney, int* machineMoney);
@@ -27,6 +29,7 @@ int returnChange(int* machineMoney, int* userMoney);
 int exitProgram();
 int askYesNo(int state1, int state2);
 // 관리자 모드 관련
+int checkPassword();
 int showAdminScreen();
 void printFile(FILE* fp);
 FILE* writeFile(FILE* fp, Drink drinks[], int drinkTypes, int totalSales, int totalRevenue);
@@ -47,8 +50,7 @@ int main(void) {
 	// 파일 읽기용 변수
 	int drinkTypes;	// 음료 종류 가지 수
 	int totalSales;	// 총 판매량
-	int totalRevenue;	// 총 수익
-	
+	int totalRevenue;	// 총 수익	
 
 	// 파일 열기
 	FILE* fp = fopen("test.txt", "a+t");
@@ -94,29 +96,12 @@ int main(void) {
 	while (1) {
 		// 초기 화면
 		printMachine(0, 0, machineMoney, userMoney);
-		printf("\n--- 모드 입력 ---\n");
-		printf("관리자 모드 : 1\n사용자 모드 : 2\n종료 : 0\n\n");
-		printf("입력 : ");
-		while (scanf("%d", &mode) != 1) {
-			while (getchar() != '\n');
-			printf("\n숫자를 입력해주세요.\n");
-			printf("다시 입력 : ");
-		}
-		while (getchar() != '\n');
+		mode = selectMode();
 
 		// 관리자 모드
 		if (mode == 1) {
-			// 비밀번호 검사
-			char password[5] = "1234";
-			char inputPassword[5];
-			printf("비밀번호를 입력하세요 : ");
-			if (scanf("%s", inputPassword) != 1 || strcmp(password, inputPassword) != 0) {
-				getchar();
-				printf("\n비밀번호가 틀렸습니다.\n");
-				printf("Enter를 입력하여 돌아가기.\n");
-				while (getchar() != '\n');
-				continue;
-			}
+			// 비밀번호 검사		
+			if (!checkPassword()) continue;
 
 			state = 0;
 			int selectedDrinkIndex;	// 수정할 음료 번호			
@@ -228,10 +213,8 @@ int main(void) {
 										drinks[selectedDrinkIndex - 1].stock = stock;
 										break;
 									}
-									fp = writeFile(fp, drinks, drinkTypes, totalSales, totalRevenue);
-									printf("\n입력한 내용이 저장되었습니다.\n\n");
-									printf("Enter를 입력하여 계속.\n");
-									while (getchar() != '\n');
+									fp = writeFile(fp, drinks, drinkTypes, totalSales, totalRevenue);									
+									waitEnter("\n입력한 내용이 저장되었습니다.\n\nEnter를 입력하여 계속.");									
 									writeModeState = 3;
 									break;
 								}
@@ -252,6 +235,7 @@ int main(void) {
 					}
 				}
 
+				// 판매 기록 열람
 				else if (state == 3) {
 					FILE* log = fopen("salesLog.txt", "rt");
 					checkFileOpen(log);
@@ -259,10 +243,8 @@ int main(void) {
 					fclose(log);
 				}
 
-				else {
-					printf("\n잘못된 값입니다.\n");
-					printf("Enter를 입력하여 다시 입력.\n");
-					while (getchar() != '\n');
+				else {					
+					waitEnter("\n잘못된 값입니다.\nEnter를 입력하여 다시 입력.");
 					continue;
 				}
 			}
@@ -335,10 +317,8 @@ int main(void) {
 			return 0;
 		}
 
-		else {
-			printf("잘못된 값입니다. 프로그램을 종료합니다.");
-			fclose(fp);
-			return -1;
+		else {			
+			waitEnter("\n잘못된 값입니다.\nEnter를 입력하여 다시 입력.");
 		}
 	}
 	return 0;
@@ -397,6 +377,25 @@ void printMachine(int drink, int change, int machineMoney, int userMoney) {
 	printf("-----------------------------------------------------------------------------\n");
 }
 
+int selectMode() {
+	int mode;
+	printf("\n--- 모드 입력 ---\n");
+	printf("관리자 모드 : 1\n사용자 모드 : 2\n종료 : 0\n\n");
+	printf("입력 : ");
+	while (scanf("%d", &mode) != 1) {
+		while (getchar() != '\n');
+		printf("\n숫자를 입력해주세요.\n");
+		printf("다시 입력 : ");
+	}
+	while (getchar() != '\n');
+	return mode;
+}
+
+void waitEnter(char* str) {
+	printf("%s\n", str);
+	while (getchar() != '\n');
+}
+
 void checkFileOpen(FILE* fp) {
 	if (fp == NULL) {
 		printf("파일 불러오기 실패\n");
@@ -451,8 +450,7 @@ int selectMenu(int drinkTypes, Drink drinks[], int* choice, int* machineMoney) {
 	while (getchar() != '\n');
 	if (*choice != 0 && drinks[*choice - 1].stock <= 0) {
 		printf("\n해당 음료는 현재 재고가 없습니다.\n");
-		printf("Enter를 입력하여 메뉴로 돌아갑니다.\n");
-		while (getchar() != '\n');
+		waitEnter("Enter를 입력하여 메뉴로 돌아갑니다.");				
 		return state = 1;
 	}
 	if (*choice == 0) {
@@ -477,8 +475,8 @@ int selectMenu(int drinkTypes, Drink drinks[], int* choice, int* machineMoney) {
 int dispenseDrink(Drink drinks[], int choice, int machineMoney, int userMoney, int state, int* totalSales, int* totalRevenue) {
 	char answer;
 	printf("\n--- 음료 제공 ---\n\n");
-	printf("%s 드리겠습니다.\n\nEnter키를 눌러 받아주세요.\n", drinks[choice - 1].name);
-	while (getchar() != '\n');
+	printf("%s 드리겠습니다.\n\n", drinks[choice - 1].name);
+	waitEnter("Enter키를 눌러 받아주세요.");	
 
 	printMachine(0, 0, machineMoney, userMoney);
 	printf("\n맛있게 드세요!\n\n");
@@ -493,8 +491,8 @@ int dispenseDrink(Drink drinks[], int choice, int machineMoney, int userMoney, i
 // 잔돈 반환
 int returnChange(int* machineMoney, int* userMoney) {
 	printf("\n--- 잔돈 반환 ---\n\n");
-	printf("잔돈 %d원을 드리겠습니다.\n\nEnter키를 눌러 받아주세요.", *machineMoney);
-	while (getchar() != '\n');
+	printf("잔돈 %d원을 드리겠습니다.\n\n", *machineMoney);
+	waitEnter("Enter키를 눌러 받아주세요.");
 	*userMoney += *machineMoney;
 	*machineMoney = 0;
 	printMachine(0, 0, *machineMoney, *userMoney);
@@ -512,18 +510,16 @@ int askYesNo(int state1, int state2) {
 	while (1) {
 		printf("Y/N : ");
 		scanf("%c", &answer);
-		if (answer == 'y' || answer == 'Y') {
-			while (getchar() != '\n');
+		while (getchar() != '\n');
+		if (answer == 'y' || answer == 'Y') {			
 			state = state1;
 			break;
 		}
-		else if (answer == 'n' || answer == 'N') {
-			while (getchar() != '\n');
+		else if (answer == 'n' || answer == 'N') {			
 			state = state2;
 			break;
 		}
-		else {
-			while (getchar() != '\n');
+		else {			
 			printf("\n잘못된 값을 입력했습니다.\n");
 			continue;
 		}
@@ -534,6 +530,18 @@ int askYesNo(int state1, int state2) {
 
 // 관리자 모드 관련 함수
 
+// 비밀번호 확인
+int checkPassword() {
+	char password[5] = "1234";
+	char inputPassword[5];
+	printf("비밀번호를 입력하세요 : ");
+	if (scanf_s("%s", inputPassword, sizeof(inputPassword)) != 1 || strcmp(password, inputPassword) != 0) {
+		while (getchar() != '\n');		
+		waitEnter("\n비밀번호가 틀렸습니다.\nEnter를 입력하여 돌아가기.");		
+		return 0;
+	}
+	else return 1;
+}
 // 관리자 모드 첫 화면 출력
 int showAdminScreen() {
 	int answer;
@@ -552,8 +560,7 @@ void printFile(FILE* fp) {
 	while (fgets(tmp, sizeof(tmp), fp) != NULL) {
 		printf("%s", tmp);
 	}
-	printf("\n\nEnter를 눌러 처음으로 돌아갑니다.");
-	while (getchar() != '\n');
+	waitEnter("\n\nEnter키를 눌러 돌아가기.");
 }
 // 파일 새로 쓰기
 FILE* writeFile(FILE* fp, Drink drinks[], int drinkTypes, int totalSales, int totalRevenue) {
@@ -663,9 +670,8 @@ void addDrinkList(FILE* fp, Drink** drinks, int* drinkTypes, int totalSales, int
 			(*drinks)[*drinkTypes - 1].price = price;
 			(*drinks)[*drinkTypes - 1].stock = stock;
 
-			writeFile(fp, *drinks, *drinkTypes, totalSales, totalRevenue);
-			printf("\n음료 추가 완료.\nEnter를 눌러 돌아가기\n");
-			getchar();
+			writeFile(fp, *drinks, *drinkTypes, totalSales, totalRevenue);			
+			waitEnter("\n음료 추가 완료.\nEnter를 눌러 돌아가기");
 			break;
 		}
 		else if (yn == 'n' || yn == 'N') {
@@ -706,7 +712,6 @@ void deleteDrinkList(FILE* fp, Drink drinks[], int* drinkTypes, int totalSales, 
 
 	(*drinkTypes)--;
 
-	writeFile(fp, drinks, *drinkTypes, totalSales, totalRevenue);
-	printf("음료 삭제 완료.\nEnter를 눌러 돌아가기\n");
-	getchar();
+	writeFile(fp, drinks, *drinkTypes, totalSales, totalRevenue);	
+	waitEnter("음료 삭제 완료.\nEnter를 눌러 돌아가기");
 }
