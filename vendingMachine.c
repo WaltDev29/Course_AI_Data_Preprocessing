@@ -19,7 +19,7 @@ int main(void) {
 	int totalRevenue;	// 총 수익	
 
 	// 파일 열기
-	FILE* fp = fopen("test.txt", "a+t");
+	FILE* fp = fopen(FILE_NAME, "a+t");
 	checkFileOpen(fp);
 	// 커서 위치 처음으로
 	fseek(fp, 0, SEEK_SET);
@@ -203,7 +203,7 @@ int main(void) {
 
 				// 판매 기록 열람
 				else if (state == 3) {
-					FILE* log = fopen("salesLog.txt", "rt");
+					FILE* log = fopen("salesLog.txt", "a+t");
 					checkFileOpen(log);
 					printFile(log);
 					fclose(log);
