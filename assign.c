@@ -56,7 +56,7 @@ int main(void) {
 	// 커서 위치 처음으로
 	fseek(fp, 0, SEEK_SET);
 
-	if (ftell(fp) == 0) {
+	if (fgetc(fp) == EOF) {
 		printf("파일이 비어있습니다.");
 		fprintf(fp, "음료 종류 : 4\n총 판매량 : 0\n총 수익 : 0\n\n");
 		fprintf(fp, "---음료 목록---\n");
