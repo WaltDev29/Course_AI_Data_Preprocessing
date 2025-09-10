@@ -30,8 +30,22 @@
     <ClCompile Include="04.c">
       <Filter>소스 파일\0904</Filter>
     </ClCompile>
-    <ClCompile Include="assign.c">
+    <ClCompile Include="vendingMachine.c">
       <Filter>소스 파일\0904</Filter>
     </ClCompile>
+    <ClCompile Include="vending.c">
+      <Filter>소스 파일\0904</Filter>
+    </ClCompile>
+    <ClCompile Include="user.c">
+      <Filter>소스 파일\0904</Filter>
+    </ClCompile>
+    <ClCompile Include="admin.c">
+      <Filter>소스 파일\0904</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="vending.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
