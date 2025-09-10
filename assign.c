@@ -81,19 +81,6 @@ int main(void) {
 		fscanf(fp, "%s %d %d", drinks[i].name, &drinks[i].price, &drinks[i].stock);
 	}
 
-	// 디버깅용 출력	
-	//printf("음료 종류 : %d개\n", drinkTypes);
-	//printf("총 판매량 : %d개\n", totalSales);
-	//printf("총 수익 : %d원\n", totalRevenue);
-	//// drinks 배열
-	//printf("\n음료 목록\n");
-	//for (int i = 0; i < drinkTypes; i++) {
-	//	printf("%-20s %-10d %-10d\n", drinks[i].name, drinks[i].price, drinks[i].stock);
-	//}
-
-	/*fclose(fp);
-	return 0;*/
-
 
 	while (1) {
 		// 초기 화면
@@ -110,6 +97,7 @@ int main(void) {
 
 		// 관리자 모드
 		if (mode == 1) {
+			// 비밀번호 검사
 			char password[5] = "1234";
 			char inputPassword[5];
 			printf("비밀번호를 입력하세요 : ");
@@ -120,6 +108,7 @@ int main(void) {
 				while (getchar() != '\n');
 				continue;
 			}
+
 			state = 0;
 			int selectedDrinkIndex;	// 수정할 음료 번호			
 			int editField; // 수정할 항목
@@ -130,8 +119,11 @@ int main(void) {
 
 				fseek(fp, 0, SEEK_SET);
 
+				// 종료
+				if (state == 0) break;
+
 				// 읽기 모드
-				if (state == 1) {
+				else if (state == 1) {
 					printFile(fp);
 				}
 
@@ -144,25 +136,30 @@ int main(void) {
 							// 음료 목록 출력 및 선택
 						case 0:
 							selectedDrinkIndex = selectDrinkToEdit(drinks, drinkTypes);
+							// 음료 종류 추가
 							if (selectedDrinkIndex == -1) {
 								addDrinkList(fp, &drinks, &drinkTypes, totalSales, totalRevenue);
 								writeModeState = 3;
 							}
+							// 음료 종류 삭제
 							else if (selectedDrinkIndex == -2) {
 								deleteDrinkList(fp, drinks, &drinkTypes, totalSales, totalRevenue);
 								writeModeState = 3;
 							}
+							// 뒤로 가기
 							else if (selectedDrinkIndex == 0) writeModeState = 3;
 							else writeModeState = 1;
 							break;
+
 							// 수정할 내용 선택					
 						case 1:
 							editField = selectFieldToEdit(drinks, selectedDrinkIndex);
 							if (editField == 0) writeModeState = 0;
 							else writeModeState = 2;
 							break;
-						case 2:
+
 							// 선택 사항 수정
+						case 2:
 							while (1) {
 								printf("\n수정할 내용을 입력해주세요.\n\n");
 								char name[50];
@@ -251,8 +248,6 @@ int main(void) {
 					printFile(log);
 					fclose(log);
 				}
-
-				else if (state == 0) break;
 
 				else {
 					printf("\n잘못된 값입니다.\n");
@@ -344,7 +339,6 @@ int main(void) {
 
 // todo
 // 1. 관리자 모드 함수화
-// 2. UI도 음료수 갯수에 맞춰 동적으로 생성해볼까?
 
 
 // 자판기 출력 함수
@@ -392,7 +386,6 @@ void printMachine(int drink, int change, int machineMoney, int userMoney) {
 	printf("-\t                                                 \t\t    -\n");
 	printf("-----------------------------------------------------------------------------\n");
 }
-
 
 // 사용자 모드 관련 함수
 
