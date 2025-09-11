@@ -104,7 +104,7 @@ void writePBMImage(const char* filename, const Image im, unsigned char minVal, f
 
 	if (im->format == GREY) {
 		for (k = 0; k < im->total; ++k) {
-			fputc((unsigned char)im->content[k], pgmFile);			
+			fputc((unsigned char)((im->content[k] - minVal) * normCoef), pgmFile);			
 		}
 	}
 
