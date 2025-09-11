@@ -16,6 +16,9 @@
     <Filter Include="소스 파일\0904">
       <UniqueIdentifier>{27493f81-6ef8-405a-add4-7f0d910f0cd9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="소스 파일\0911">
+      <UniqueIdentifier>{0ca530a0-04ee-470f-826b-edad0fd5d105}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="01.c">
@@ -41,6 +44,9 @@
     </ClCompile>
     <ClCompile Include="admin.c">
       <Filter>소스 파일\0904</Filter>
+    </ClCompile>
+    <ClCompile Include="05.c">
+      <Filter>소스 파일\0911</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
