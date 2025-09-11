@@ -41,9 +41,12 @@ Image imageAllocate(unsigned int rows, unsigned int cols, char format, unsigned 
 	return im;
 }
 
-Image readPBMImage(const char* filename) {
+Image readPBMImage(const char* filename, unsigned char* minVal, float* normCoef) {
 	FILE* pgmFile;
 	int k;
+
+	// 히스토그램 평활화를 위한 변수 선언	
+	unsigned char maxVal = 0;
 
 	char signature[3];
 	unsigned int cols, rows, levels;
@@ -70,14 +73,21 @@ Image readPBMImage(const char* filename) {
 
 	if (strcmp(signature, "P5") == 0) {
 		im = imageAllocate(rows, cols, GREY, levels);
-		for (k = 0; k < im->total; ++k)
-			im->content[k] = (char)fgetc(pgmFile);
+		for (k = 0; k < im->total; ++k) {
+			im->content[k] = (unsigned char)fgetc(pgmFile);
+			// minVal, maxVal 구하기
+			if (im->content[k] < *minVal) *minVal = im->content[k];
+			if (im->content[k] > maxVal) maxVal = im->content[k];
+		}
 	}
+	// normCoef 계산
+	*normCoef = levels / (float)(maxVal - *minVal);
+
 	fclose(pgmFile);
 	return im;
 }
 
-void writePBMImage(const char* filename, const Image im) {
+void writePBMImage(const char* filename, const Image im, unsigned char minVal, float normCoef) {
 	FILE* pgmFile;
 	int k;
 
@@ -93,19 +103,18 @@ void writePBMImage(const char* filename, const Image im) {
 	fprintf(pgmFile, "%d ", im->levels);
 
 	if (im->format == GREY) {
-		for (k = 0; k < im->total; ++k)
-			fputc((char)im->content[k], pgmFile);
+		for (k = 0; k < im->total; ++k) {
+			fputc((unsigned char)im->content[k], pgmFile);			
+		}
 	}
 
 	fclose(pgmFile);
 }
 
 int main(void) {
-	Image im = readPBMImage("frog.pbm");
-	writePBMImage("frog2.pbm", im);
+	unsigned char minVal = 255;
+	float normCoef = 0;
+	Image im = readPBMImage("frog.pbm", &minVal, &normCoef);
+	writePBMImage("frog2.pbm", im, minVal, normCoef);
 	return 0;
 }
-
-// 과제
-// write 함수에다 히스토그램 평활화 적용해서 하기
-// 최고값 최저값 찾기 for문 돌려서 찾기
