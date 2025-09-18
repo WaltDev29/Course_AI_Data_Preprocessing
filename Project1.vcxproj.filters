@@ -19,6 +19,9 @@
     <Filter Include="소스 파일\0911">
       <UniqueIdentifier>{0ca530a0-04ee-470f-826b-edad0fd5d105}</UniqueIdentifier>
     </Filter>
+    <Filter Include="소스 파일\0918">
+      <UniqueIdentifier>{88081199-463a-49de-ab1b-09e2b5109b7e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="01.c">
@@ -47,6 +50,18 @@
     </ClCompile>
     <ClCompile Include="05.c">
       <Filter>소스 파일\0911</Filter>
+    </ClCompile>
+    <ClCompile Include="06_RGB추가중.c">
+      <Filter>소스 파일\0918</Filter>
+    </ClCompile>
+    <ClCompile Include="test.c">
+      <Filter>소스 파일\0918</Filter>
+    </ClCompile>
+    <ClCompile Include="07_줄무늬추가.c">
+      <Filter>소스 파일\0918</Filter>
+    </ClCompile>
+    <ClCompile Include="08_Draw.c">
+      <Filter>소스 파일\0918</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

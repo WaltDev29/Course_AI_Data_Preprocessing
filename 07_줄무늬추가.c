@@ -101,10 +101,13 @@ void writePBMImage(const char* filename, const Image im, unsigned char minVal, f
 		fprintf(pgmFile, "%s ", "P5");
 	fprintf(pgmFile, "%d %d ", im->cols, im->rows);
 	fprintf(pgmFile, "%d ", im->levels);
-
+	int interval = im->rows / 5;
+	int line = 0;
 	if (im->format == GREY) {
 		for (k = 0; k < im->total; ++k) {
-			fputc((unsigned char)((im->content[k] - minVal) * normCoef), pgmFile);			
+			line = k / im->cols;
+			if (line / interval % 2 != 0) fputc(0, pgmFile);
+			else fputc((unsigned char)((im->content[k] - minVal) * normCoef), pgmFile);
 		}
 	}
 

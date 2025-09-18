@@ -1,4 +1,11 @@
 #define _CRT_SECURE_NO_WARNINGS
+// 매크로
+#define MIN(x,y) x < y ? x: y
+#define MAX(x,y) x > y ? x: y
+// 리턴타입과 매개변수의 타입을 지정하지 않아도 됨
+// 복잡한 함수에는 할 수 없음.
+// 매크로에 대해서는 디버깅이 안됨
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -41,12 +48,9 @@ Image imageAllocate(unsigned int rows, unsigned int cols, char format, unsigned 
 	return im;
 }
 
-Image readPBMImage(const char* filename, unsigned char* minVal, float* normCoef) {
+Image readPBMImage(const char* filename) {
 	FILE* pgmFile;
 	int k;
-
-	// 히스토그램 평활화를 위한 변수 선언	
-	unsigned char maxVal = 0;
 
 	char signature[3];
 	unsigned int cols, rows, levels;
@@ -75,13 +79,18 @@ Image readPBMImage(const char* filename, unsigned char* minVal, float* normCoef)
 		im = imageAllocate(rows, cols, GREY, levels);
 		for (k = 0; k < im->total; ++k) {
 			im->content[k] = (unsigned char)fgetc(pgmFile);
-			// minVal, maxVal 구하기
-			if (im->content[k] < *minVal) *minVal = im->content[k];
-			if (im->content[k] > maxVal) maxVal = im->content[k];
 		}
 	}
-	// normCoef 계산
-	*normCoef = levels / (float)(maxVal - *minVal);
+	else if (strcmp(signature, "P6") == 0) {
+		im = imageAllocate(rows, cols, RGB, levels);
+		unsigned long gOffset = im->cols * im->rows;
+		unsigned long bOffset = 2 * im->cols * im->rows;
+		for (k = 0; k < im->total / 3; ++k) {
+			im->content[k] = (unsigned char)fgetc(pgmFile);
+			im->content[k + gOffset] = (unsigned char)fgetc(pgmFile);
+			im->content[k + bOffset] = (unsigned char)fgetc(pgmFile);
+		}
+	}
 
 	fclose(pgmFile);
 	return im;
@@ -97,14 +106,24 @@ void writePBMImage(const char* filename, const Image im, unsigned char minVal, f
 		exit(EXIT_FAILURE);
 	}
 
-	if (im->format == GREY)
-		fprintf(pgmFile, "%s ", "P5");
+	if (im->format == GREY) fprintf(pgmFile, "%s ", "P5");
+	else if (im->format == RGB) fprintf(pgmFile, "%s", "P6");
+
 	fprintf(pgmFile, "%d %d ", im->cols, im->rows);
 	fprintf(pgmFile, "%d ", im->levels);
 
 	if (im->format == GREY) {
 		for (k = 0; k < im->total; ++k) {
-			fputc((unsigned char)((im->content[k] - minVal) * normCoef), pgmFile);			
+			fputc((unsigned char)((im->content[k] - minVal) * normCoef), pgmFile);
+		}
+	}
+	else if (im->format == RGB) {
+		unsigned long gOffset = im->cols * im->rows;
+		unsigned long bOffset = 2 * im->cols * im->rows;
+		for (k = 0; k < im->total / 3; ++k) {
+			fputc((unsigned char)im->content[k], pgmFile);
+			fputc((unsigned char)im->content[k + gOffset], pgmFile);
+			fputc((unsigned char)im->content[k + bOffset], pgmFile);
 		}
 	}
 
@@ -114,7 +133,7 @@ void writePBMImage(const char* filename, const Image im, unsigned char minVal, f
 int main(void) {
 	unsigned char minVal = 255;
 	float normCoef = 0;
-	Image im = readPBMImage("frog.pbm", &minVal, &normCoef);
+	Image im = readPBMImage("frog.pbm");
 	writePBMImage("frog2.pbm", im, minVal, normCoef);
 	return 0;
 }
