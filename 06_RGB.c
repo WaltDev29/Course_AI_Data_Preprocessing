@@ -1,19 +1,17 @@
 #define _CRT_SECURE_NO_WARNINGS
-
+// 매크로
 #define MIN(x,y) x < y ? x: y
 #define MAX(x,y) x > y ? x: y
+// 리턴타입과 매개변수의 타입을 지정하지 않아도 됨
+// 복잡한 함수에는 할 수 없음.
+// 매크로에 대해서는 디버깅이 안됨
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <Windows.h>
-
-
-
-HWND hwnd;	// handle window (윈도우 다루기)
-HDC hdc;
 
 // pbm 파일 읽어와서 복사하는 프로그램
+// + 히스토그램 평활화
 
 enum FORMAT { EMPTY, GREY, RGB, YCBCR, YCBCR420, BLOCK };
 
@@ -27,60 +25,6 @@ typedef struct {		// 총 21 byte
 } ImageType;
 typedef ImageType* Image;
 
-// 숫자 이미지를 표시하는 함수
-void DrawImage(Image im) {
-	hwnd = GetForegroundWindow();
-	hdc = GetWindowDC(hwnd);
-	for (int i = 0; i < im->rows; ++i) {
-		for (int j = 0; j < im->cols; j++) {
-			SetPixel(hdc, 250 + i, 250 + j, RGB(
-				im->content[j * im->cols + i],
-				im->content[j * im->cols + i],
-				im->content[j * im->cols + i]
-			));
-		}
-	}
-}
-
-// 히스토그램을 표시하는 함수
-void DrawHistogram(Image im) {
-	// 가로/세로를 담을 배열 생성 후 초기화
-	short* horizontal = (short*)malloc(sizeof(short) * im->cols);
-	short* vertical = (short*)malloc(sizeof(short) * im->rows);
-
-	for (int i = 0; i < im->cols; i++) horizontal[i] = 0;
-	for (int i = 0; i < im->rows; i++) vertical[i] = 0;
-
-	// 이미지를 가로/세로로 순회하며 기준보다 어두운 색의 수를 기록
-	for (int i = 0; i < im->rows; ++i) {
-		for (int j = 0; j < im->cols; j++) {
-			if (im->content[i * im->cols + j] < 10) horizontal[j]++;
-		}
-	}
-	for (int j = 0; j < im->cols; ++j) {
-		for (int i = 0; i < im->rows; i++) {
-			if (im->content[i * im->cols + j] < 10) vertical[j]++;
-		}
-	}
-
-	hwnd = GetForegroundWindow();
-	hdc = GetWindowDC(hwnd);
-
-	// 가로/세로로 나아가며 히스토그램을 기록
-	for (int i = 0; i < im->cols; i++) {
-		for (int j = 0; j < horizontal[i] * 5; j++)
-			SetPixel(hdc, 250 + i, 250 - j, RGB(0, 255, 0));
-	}
-	for (int i = 0; i < im->rows; i++) {
-		for (int j = 0; j < vertical[i] * 5; j++)
-			SetPixel(hdc, 250 - j, 250 + i, RGB(0, 255, 0));
-	}
-
-	free(horizontal);
-	free(vertical);
-}
-
-// 히스토그램 평활화를 적용하는 함수
 void equalize(Image im) {
 	int minVal[3] = { 255,255,255 };
 	int maxVal[3] = { 0,0,0 };
@@ -114,8 +58,8 @@ void equalize(Image im) {
 		normCoef[2] = (float)im->levels / (maxVal[2] - minVal[2]);
 		for (int i = 0; i < im->total; i += 3) {
 			im->content[i] = (im->content[i] - minVal[0]) * normCoef[0];
-			im->content[i + 1] = (im->content[i + 1] - minVal[1]) * normCoef[1];
-			im->content[i + 2] = (im->content[i + 2] - minVal[2]) * normCoef[2];
+			im->content[i+1] = (im->content[i+1] - minVal[1]) * normCoef[1];
+			im->content[i+2] = (im->content[i+2] - minVal[2]) * normCoef[2];
 		}
 	}
 }
@@ -226,22 +170,9 @@ void writePBMImage(const char* filename, const Image im) {
 	fclose(pgmFile);
 }
 
-int main(void) {
-	Image img = 0;
-
-	while (1) {
-		for (int i = 0; i < 10; i++) {
-			for (int j = 0; j < 3; j++) {
-				system("cls");
-				char imgPath[] = "./pgm/no0-1.pgm";
-				imgPath[8] = '0' + i;
-				imgPath[10] = '1' + j;
-				img = readPBMImage(imgPath);
-				DrawImage(img);
-				DrawHistogram(img);
-				Sleep(1000);
-			}
-		}
-	}
+int main(void) {	
+	Image im = readPBMImage("frog.pbm");
+	equalize(im);
+	writePBMImage("frog2.pbm", im);
 	return 0;
 }

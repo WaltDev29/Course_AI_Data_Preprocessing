@@ -11,6 +11,7 @@
 #include <string.h>
 
 // pbm 파일 읽어와서 복사하는 프로그램
+// + 히스토그램 평활화
 
 enum FORMAT { EMPTY, GREY, RGB, YCBCR, YCBCR420, BLOCK };
 
@@ -23,6 +24,55 @@ typedef struct {		// 총 21 byte
 	short* content;
 } ImageType;
 typedef ImageType* Image;
+
+void drawLine(Image im) {
+	int interval = im->rows / 5;
+	int line;
+	for (int i = 0; i < im->total; i++) {
+		line = i / 320;
+		if (interval < line && line <= interval * 2) im->content[i] = 0;
+		else if (interval * 3 < line && line <= interval * 4) im->content[i] = 0;		
+	}	
+}
+
+void equalize(Image im) {
+	int minVal[3] = { 255,255,255 };
+	int maxVal[3] = { 0,0,0 };
+	float normCoef[3];
+
+	if (im->format == GREY) {
+		for (int i = 0; i < im->total; i++) {
+			minVal[0] = MIN(im->content[i], minVal[0]);
+			maxVal[0] = MAX(im->content[i], maxVal[0]);
+		}
+	}
+	else if (im->format == RGB) {
+		for (int i = 0; i < im->total; i += 3) {
+			minVal[0] = MIN(im->content[i], minVal[0]);
+			maxVal[0] = MAX(im->content[i], maxVal[0]);
+			minVal[1] = MIN(im->content[i + 1], minVal[1]);
+			maxVal[1] = MAX(im->content[i + 1], maxVal[1]);
+			minVal[2] = MIN(im->content[i + 2], minVal[2]);
+			maxVal[2] = MAX(im->content[i + 2], maxVal[2]);
+		}
+	}
+
+	if (im->format == GREY) {
+		normCoef[0] = (float)im->levels / (maxVal[0] - minVal[0]);
+		for (int i = 0; i < im->total; i++)
+			im->content[i] = (im->content[i] - minVal[0]) * normCoef[0];
+	}
+	else if (im->format == RGB) {
+		normCoef[0] = (float)im->levels / (maxVal[0] - minVal[0]);
+		normCoef[1] = (float)im->levels / (maxVal[1] - minVal[1]);
+		normCoef[2] = (float)im->levels / (maxVal[2] - minVal[2]);
+		for (int i = 0; i < im->total; i += 3) {
+			im->content[i] = (im->content[i] - minVal[0]) * normCoef[0];
+			im->content[i + 1] = (im->content[i + 1] - minVal[1]) * normCoef[1];
+			im->content[i + 2] = (im->content[i + 2] - minVal[2]) * normCoef[2];
+		}
+	}
+}
 
 Image imageAllocate(unsigned int rows, unsigned int cols, char format, unsigned int levels) {
 	Image im = (Image)malloc(sizeof(ImageType));
@@ -96,7 +146,7 @@ Image readPBMImage(const char* filename) {
 	return im;
 }
 
-void writePBMImage(const char* filename, const Image im, unsigned char minVal, float normCoef) {
+void writePBMImage(const char* filename, const Image im) {
 	FILE* pgmFile;
 	int k;
 
@@ -114,7 +164,7 @@ void writePBMImage(const char* filename, const Image im, unsigned char minVal, f
 
 	if (im->format == GREY) {
 		for (k = 0; k < im->total; ++k) {
-			fputc((unsigned char)((im->content[k] - minVal) * normCoef), pgmFile);
+			fputc((unsigned char)im->content[k], pgmFile);
 		}
 	}
 	else if (im->format == RGB) {
@@ -131,9 +181,8 @@ void writePBMImage(const char* filename, const Image im, unsigned char minVal, f
 }
 
 int main(void) {
-	unsigned char minVal = 255;
-	float normCoef = 0;
 	Image im = readPBMImage("frog.pbm");
-	writePBMImage("frog2.pbm", im, minVal, normCoef);
+	drawLine(im);
+	writePBMImage("frog2.pbm", im);
 	return 0;
 }

@@ -51,13 +51,13 @@
     <ClCompile Include="05.c">
       <Filter>소스 파일\0911</Filter>
     </ClCompile>
-    <ClCompile Include="06_RGB추가중.c">
+    <ClCompile Include="06_RGB.c">
       <Filter>소스 파일\0918</Filter>
     </ClCompile>
     <ClCompile Include="test.c">
       <Filter>소스 파일\0918</Filter>
     </ClCompile>
-    <ClCompile Include="07_줄무늬추가.c">
+    <ClCompile Include="07_PlusLine.c">
       <Filter>소스 파일\0918</Filter>
     </ClCompile>
     <ClCompile Include="08_Draw.c">
