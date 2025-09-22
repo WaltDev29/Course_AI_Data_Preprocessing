@@ -54,9 +54,6 @@
     <ClCompile Include="06_RGB.c">
       <Filter>소스 파일\0918</Filter>
     </ClCompile>
-    <ClCompile Include="test.c">
-      <Filter>소스 파일\0918</Filter>
-    </ClCompile>
     <ClCompile Include="07_PlusLine.c">
       <Filter>소스 파일\0918</Filter>
     </ClCompile>
