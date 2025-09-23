@@ -2,6 +2,8 @@
 
 #define MIN(x,y) x < y ? x: y
 #define MAX(x,y) x > y ? x: y
+#define NUM_DIGITS 10
+#define NUM_FONTS 3
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,9 +32,9 @@ typedef ImageType* Image;
 void DrawImage(Image im);	// 숫자 이미지를 표시하는 함수
 void DrawHistogram(Image im, short* horizontal, short* vertical);	// 히스토그램을 표시하는 함수
 
-void calHistogram(Image im, short* horizontal, short* vertical);	// 히스토그램을 계산하는 함수
+void cal_histogram(Image im, short* horizontal, short* vertical);	// 히스토그램을 계산하는 함수
 void cal_variance_bias(Image im, float variance_arr[], float bias_arr[], short* horizontal, short* vertical);	// 히스토그램 평균/분산을 구하는 함수
-void classification(Image im, float minMaxRange[][8], char results[], float variance_arr[], float bias_arr[]);
+void classification(Image im, float minMaxRange[][8], char results[], float variance_arr[], float bias_arr[]);	// 이미지를 분류하는 함수
 void equalize(Image im);	// 히스토그램 평활화를 적용하는 함수
 
 Image imageAllocate(unsigned int rows, unsigned int cols, char format, unsigned int levels);
@@ -43,20 +45,20 @@ void writePBMImage(const char* filename, const Image im);
 int main(void) {
 	Image img = 0;
 
-	float var_bias_arr[10][3][4];	// 각 숫자, 폰트별 평균과 분산을 저장하는 배열
+	float var_bias_arr[NUM_DIGITS][NUM_FONTS][4];	// 각 숫자, 폰트별 평균과 분산을 저장하는 배열
 	float variance_arr[2];	// 평균을 저장하는 임시 배열
 	float bias_arr[2];	// 분산을 저장하는 임시 배열
 
 	// 각 숫자,폰트의 평균/분산을 구하는 부분
-	for (int i = 0; i < 10; i++) {
-		for (int j = 0; j < 3; j++) {
+	for (int i = 0; i < NUM_DIGITS; i++) {
+		for (int j = 0; j < NUM_FONTS; j++) {
 			char imgPath[] = "./pgm/no0-1.pgm";
 			imgPath[8] = '0' + i;
 			imgPath[10] = '1' + j;
 			img = readPBMImage(imgPath);
 			short* horizontal = malloc(sizeof(short) * img->cols);
 			short* vertical = malloc(sizeof(short) * img->rows);
-			calHistogram(img, horizontal, vertical);
+			cal_histogram(img, horizontal, vertical);
 			cal_variance_bias(img, variance_arr, bias_arr, horizontal, vertical);
 			var_bias_arr[i][j][0] = variance_arr[0];
 			var_bias_arr[i][j][1] = variance_arr[1];
@@ -67,25 +69,9 @@ int main(void) {
 		}
 	}
 
-	//printf("1. var_row : %.2f\n", var_bias_arr[0][0][0]);
-	//printf("2. var_row : %.2f\n", var_bias_arr[0][1][0]);
-	//printf("3. var_row : %.2f\n\n", var_bias_arr[0][2][0]);
-
-	//printf("1. var_col : %.2f\n", var_bias_arr[0][0][1]);
-	//printf("2. var_col : %.2f\n", var_bias_arr[0][1][1]);
-	//printf("3. var_col : %.2f\n\n", var_bias_arr[0][2][1]);
-
-	//printf("1. bias_row : %.2f\n", var_bias_arr[0][0][2]);
-	//printf("2. bias_row : %.2f\n", var_bias_arr[0][1][2]);
-	//printf("3. bias_row : %.2f\n\n", var_bias_arr[0][2][2]);
-
-	//printf("1. bias_col : %.2f\n", var_bias_arr[0][0][3]);
-	//printf("2. bias_col : %.2f\n", var_bias_arr[0][1][3]);
-	//printf("3. bias_col : %.2f\n\n", var_bias_arr[0][2][3]);
-
 	// 숫자별 평균/분산의 범위를 구하는 부분
-	float minMaxRange[10][8];
-	for (int i = 0; i < 10; i++) {
+	float minMaxRange[NUM_DIGITS][8];
+	for (int i = 0; i < NUM_DIGITS; i++) {
 		for (int j = 0; j < 4; j++) {
 			float v0 = var_bias_arr[i][0][j];
 			float v1 = var_bias_arr[i][1][j];
@@ -97,6 +83,7 @@ int main(void) {
 			minMaxRange[i][j * 2] = mn;
 			minMaxRange[i][j * 2 + 1] = mx;
 		}
+		// 각 숫자별 평균/분산의 최저/최고치 출력
 		//printf("--- %d ---\n", i);
 		//printf("var_row_min : %.2f\n", minMaxRange[i][0]);
 		//printf("var_row_max : %.2f\n", minMaxRange[i][1]);
@@ -110,8 +97,8 @@ int main(void) {
 
 	// 숫자 이미지를 읽어 분류하는 부분
 	while (1) {
-		for (int i = 0; i < 10; i++) {
-			for (int j = 0; j < 3; j++) {
+		for (int i = 0; i < NUM_DIGITS; i++) {
+			for (int j = 0; j < NUM_FONTS; j++) {
 				system("cls");
 				char imgPath[] = "./pgm/no0-1.pgm";
 				imgPath[8] = '0' + i;
@@ -121,7 +108,7 @@ int main(void) {
 				short* horizontal = (short*)malloc(sizeof(short) * img->cols);
 				short* vertical = (short*)malloc(sizeof(short) * img->rows);
 				char results[10] = { 0 };
-				calHistogram(img, horizontal, vertical);
+				cal_histogram(img, horizontal, vertical);
 				cal_variance_bias(img, variance_arr, bias_arr, horizontal, vertical);
 				classification(img, minMaxRange, results, variance_arr, bias_arr);
 				printf("results : ");
@@ -138,10 +125,10 @@ int main(void) {
 	}
 
 
-
+	// 히스토그램과 평균/분산을 출력하는 부분
 	/*while (1) {
-		for (int i = 0; i < 10; i++) {
-			for (int j = 0; j < 3; j++) {
+		for (int i = 0; i < NUM_DIGITS; i++) {
+			for (int j = 0; j < NUM_FONTS; j++) {
 				system("cls");
 				char imgPath[] = "./pgm/no0-1.pgm";
 				imgPath[8] = '0' + i;
@@ -151,7 +138,7 @@ int main(void) {
 
 				short* horizontal = malloc(sizeof(short) * img->cols);
 				short* vertical = malloc(sizeof(short) * img->rows);
-				calHistogram(img, horizontal, vertical);
+				cal_histogram(img, horizontal, vertical);
 
 				printf("horizontal variance : %.2f\n", var_bias_arr[i][j][0]);
 				printf("vertical variance : %.2f\n", var_bias_arr[i][j][1]);
@@ -183,7 +170,7 @@ void DrawImage(Image im) {
 }
 
 // 히스토그램을 계산하는 함수
-void calHistogram(Image im, short* horizontal, short* vertical) {
+void cal_histogram(Image im, short* horizontal, short* vertical) {
 	// 배열 초기화
 	for (int i = 0; i < im->cols; i++) horizontal[i] = 0;
 	for (int i = 0; i < im->rows; i++) vertical[i] = 0;
@@ -217,9 +204,6 @@ void DrawHistogram(Image im, short* horizontal, short* vertical) {
 			SetPixel(hdc, 250 - j, 250 + i, RGB(0, 255, 0));
 		}
 	}
-
-	free(horizontal);
-	free(vertical);
 }
 
 // 히스토그램 평균/분산을 구하는 함수
@@ -266,9 +250,10 @@ void cal_variance_bias(Image im, float variance_arr[], float bias_arr[], short* 
 	bias_arr[1] = vertical_bias_sum / (float)vertical_count;
 }
 
+// 이미지를 분류하는 함수
 void classification(Image im, float minMaxRange[][8], char results[], float variance_arr[], float bias_arr[]) {
 	int num;
-	for (int i = 0; i < 10; i++) {
+	for (int i = 0; i < NUM_DIGITS; i++) {
 		for (int j = 0; j < 2; j++) {
 			if ((minMaxRange[i][0] <= variance_arr[0] && variance_arr[0] <= minMaxRange[i][1]) && (minMaxRange[i][2] <= variance_arr[1] && variance_arr[1] <= minMaxRange[i][3]))
 				if ((minMaxRange[i][4] <= bias_arr[0] && bias_arr[0] <= minMaxRange[i][5]) && (minMaxRange[i][6] <= bias_arr[1] && bias_arr[1] <= minMaxRange[i][7]))
