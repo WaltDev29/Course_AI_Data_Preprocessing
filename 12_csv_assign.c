@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <stdio.h>
 
 // 배열 행/열 사이즈 구하는 함수
 int* getSizes(FILE* fp, int* iSize) {
@@ -102,16 +101,21 @@ float* getStudentAverages(int** scores, int iSize, int* jSize) {
 }
 
 // 과목별 점수 평균 구하는 함수
-float* getSubjectAverages(int** scores, int iSize, int* jSize) {
-	int sum;
-	float* avg = (float*)malloc(sizeof(float) * jSize[0]);
+float* getSubjectAverages(int** scores, int iSize, int* jSize, int maxlen) {
+	int sum;	
+	int count = 0;
 
-	for (int j = 0; j < jSize[0]; j++) {
+	float* avg = (float*)malloc(sizeof(float) * maxlen);
+
+	for (int j = 0; j < maxlen; j++) {
 		sum = 0;
+		count = 0;
 		for (int i = 0; i < iSize; i++) {
+			if (j >= jSize[i]) continue;
 			sum += scores[i][j];
+			count++;
 		}
-		avg[j] = (float)sum / iSize;
+		avg[j] = (float)sum / count;
 	}
 	return avg;
 }
@@ -140,23 +144,8 @@ int main(void) {
 	// 배열 행/열 사이즈 구하기
 	jSize = getSizes(fp, &iSize);
 
-	// 배열 행/열 사이즈 출력
-	//printf("iSize : %d\n", iSize);
-	//for (int i = 0; i < 2; i++) {
-	//	printf("jSize[%d] : %d\n", i, jSize[i]);
-	//}
-	//printf("\n");
-
 	// 배열 동적 할당 및 파일 내용 대입
 	scores = allocateArray(fp, iSize, jSize);
-
-	// 배열 출력
-	//for (int i = 0; i < iSize; i++) {
-	//	for (int j = 0; j < jSize[i]; j++) {
-	//		printf("scores[%d][%d] = %d\n", i, j, scores[i][j]);
-	//	}
-	//	printf("\n");
-	//}
 
 	// 전체 점수 평균/분산 구하기
 	totalAverage = getTotalAverage(scores, iSize, jSize);			
@@ -164,8 +153,15 @@ int main(void) {
 
 	// 학생별 평균 구하기
 	student_averages = getStudentAverages(scores, iSize, jSize);
+
+	// 최대 과목 개수 구하기
+	int maxlen = 0;	
+	for (int i = 0; i < iSize; i++) {
+		if (jSize[i] > maxlen) maxlen = jSize[i];
+	}
+
 	// 과목별 평균 구하기
-	subject_averages = getSubjectAverages(scores, iSize, jSize);
+	subject_averages = getSubjectAverages(scores, iSize, jSize, maxlen);
 
 
 	// 전체 점수 평균/분산 출력
@@ -181,13 +177,16 @@ int main(void) {
 
 	// 과목 평균 점수 출력
 	printf("===과목 평균 점수===\n");
-	for (int i = 0; i < jSize[0]; i++) {
+	for (int i = 0; i < maxlen; i++) {
 		printf("%s 과목의 평균 점수 : %.2f\n", subjects[i], subject_averages[i]);
 	}
 
 	// 메모리 해제
 	fclose(fp);
 	free(jSize);
+	for (int i = 0; i < iSize; i++) {
+		free(scores[i]);
+	}
 	free(scores);
 	free(student_averages);
 	free(subject_averages);

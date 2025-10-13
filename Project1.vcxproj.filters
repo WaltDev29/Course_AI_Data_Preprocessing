@@ -25,6 +25,9 @@
     <Filter Include="소스 파일\0925">
       <UniqueIdentifier>{e20d8d48-fcd6-4e49-a570-eac881dce79f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="소스 파일\1002">
+      <UniqueIdentifier>{8919c16d-ef9f-4099-96ac-0a2117aefb20}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="01.c">
@@ -74,6 +77,9 @@
     </ClCompile>
     <ClCompile Include="12_csv_assign.c">
       <Filter>소스 파일\0925</Filter>
+    </ClCompile>
+    <ClCompile Include="test.c">
+      <Filter>소스 파일\1002</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
