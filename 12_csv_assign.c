@@ -37,7 +37,7 @@ int** allocateArray(FILE* fp, int iSize, int* jSize) {
 	}
 
 	// 배열에 파일 내용 대입
-	fseek(fp, SEEK_SET, 0);
+	fseek(fp, 0, SEEK_SET);
 	for (int i = 0; i < iSize; i++) {
 		fgets(str_tmp, sizeof(str_tmp), fp);
 
