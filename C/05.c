@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-// pbm 파일 읽어와서 복사하는 프로그램
+// pgm 파일 읽어와서 복사하는 프로그램
 
 enum FORMAT { EMPTY, GREY, RGB, YCBCR, YCBCR420, BLOCK };
 
@@ -41,7 +41,7 @@ Image imageAllocate(unsigned int rows, unsigned int cols, char format, unsigned 
 	return im;
 }
 
-Image readPBMImage(const char* filename, unsigned char* minVal, float* normCoef) {
+Image readPGMImage(const char* filename, unsigned char* minVal, float* normCoef) {
 	FILE* pgmFile;
 	int k;
 
@@ -87,7 +87,7 @@ Image readPBMImage(const char* filename, unsigned char* minVal, float* normCoef)
 	return im;
 }
 
-void writePBMImage(const char* filename, const Image im, unsigned char minVal, float normCoef) {
+void writePGMImage(const char* filename, const Image im, unsigned char minVal, float normCoef) {
 	FILE* pgmFile;
 	int k;
 
@@ -114,7 +114,7 @@ void writePBMImage(const char* filename, const Image im, unsigned char minVal, f
 int main(void) {
 	unsigned char minVal = 255;
 	float normCoef = 0;
-	Image im = readPBMImage("frog.pbm", &minVal, &normCoef);
-	writePBMImage("frog2.pbm", im, minVal, normCoef);
+	Image im = readPGMImage("frog.pgm", &minVal, &normCoef);
+	writePGMImage("frog2.pgm", im, minVal, normCoef);
 	return 0;
 }
